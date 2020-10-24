@@ -18,7 +18,7 @@ class MainWindow:
                          lambda event: self.window.destroy())
 
         # Create widgets
-        middle_frame = Frame(self.window)
+        middle_frame = Frame(self.window)  # frame je vlastne jen seskupovac vicero widgetu ktere tvori nejaky celek, abych s nimi mohl napr hybat najednou
         my_label = Label(middle_frame, text="Hello world")
 
         # Show widgets
