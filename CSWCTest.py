@@ -1,8 +1,9 @@
 #!/usr/bin/python2
 
 from Tkinter import *
+
+from CSWindow import CSWindow
 from CSWindowContent import CSWindowContent
-from CSWCTest import CSWCTest
 
 # Just testing content feel free to do whatever you want to
 class CSWCTest(CSWindowContent):
