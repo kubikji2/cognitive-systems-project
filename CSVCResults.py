@@ -16,7 +16,7 @@ class CSVCResults(CSViewContent):
 
     def show(self):
         # Create widgets
-        my_label = Tk.Label(self.csv.frame, text="Congratulations on finishing the test! Press R to restart or enter to save results and quit")
+        my_label = Tk.Label(self.csv.frame, text="Congratulations on finishing the test! Press R to restart or Esc to save results and quit")
 
         # Show widgets
         my_label.pack()

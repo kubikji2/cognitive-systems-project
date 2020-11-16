@@ -21,77 +21,73 @@ Based on: https://stackoverflow.com/questions/6158602/does-python-classes-suppor
 """
 class CSEventSystem:
     def __init__(self):
-        self._callbacks = {}  # type: Dict[str, List[Callable]]
-        # self._onetime_callbacks = {}  # type: Dict[str, List[Callable]]
+        self._callbacks = {}  # type: Dict[str, Callable]
+        self._onetime_callbacks = {}  # type: Dict[str, Callable]
 
     # public
     # Registers a function to be called when the specified event_name is triggered by window or content.
+    # It overwrites any previously registered function for this event
     def add_callback(self, event_name, callback):
-        if event_name not in self._callbacks:
-            self._callbacks[event_name] = [callback]
-        else:
-            self._callbacks[event_name].append(callback)
-        # print("[add_callback] Registered a callback for event '" + event_name + "'")
-
-    # public
-    # Removes a registered callback of a specified event_name
-    def remove_callback(self, event_name, callback):
         # type: (str, Callable) -> None
-        if event_name not in self._callbacks:
-            print("[remove_callback] No event '" + event_name + "' registered")
-        elif callback not in self._callbacks[event_name]:
-            print("[remove_callback] Specified callback not registered for event '" + event_name + "'")
-        else:
-            self._callbacks[event_name].remove(callback)
-            # print("[remove_callback] Removed a callback for event '" + event_name + "'")
+        # if event_name not in self._callbacks:
+        #     print("[add_callback] Registered a callback for event '" + event_name + "'")
+        # else:
+        #     print("[add_callback] WARN Overwritten a callback for event '" + event_name + "'")
+        self._callbacks[event_name] = callback
 
     # public
-    # Removes all registered callbacks of a given event_name
-    def remove_callbacks(self, event_name):
-        if event_name not in self._callbacks:
-            print("[remove_callbacks] No event '" + event_name + "' registered")
-        else:
-            self._callbacks.pop(event_name)
-            # print("[remove_callbacks] Removed all callbacks for event '" + event_name + "'")
+    # Registers a one-time function, that will be called only after the first event and then removed
+    def add_onetime_callback(self, event_name, callback):
+        # type: (str, Callable) -> None
+        # if event_name not in self._callbacks:
+        #     print("[add_onetime_callbacks] Registered a one-time callback for event '" + event_name + "'")
+        # else:
+        #     print("[add_onetime_callback] WARN Overwritten a one-time callback for event '" + event_name + "'")
+        self._onetime_callbacks[event_name] = callback
+
+    # public
+    # Removes the registered callback of the specified event_name
+    def remove_callback(self, event_name):
+        # type: (str) -> None
+        # if event_name not in self._callbacks:
+        #     print("[remove_callback] WARN No event '" + event_name + "' registered")
+        # else:
+        #     print("[remove_callback] Removed a callback for event '" + event_name + "'")
+        self._callbacks.pop(event_name, None)
+
+    # public
+    # Removes the registered callback of the specified event_name
+    def remove_onetime_callback(self, event_name):
+        # type: (str) -> None
+        # if event_name not in self._callbacks:
+        #     print("[remove_callback] WARN No event '" + event_name + "' registered")
+        # else:
+        #     print("[remove_callback] Removed a callback for event '" + event_name + "'")
+        self._onetime_callbacks.pop(event_name, None)
 
     # public
     # Removes all registered callbacks
     def remove_all_callbacks(self):
         self._callbacks.clear()
+        self._onetime_callbacks.clear()
         # print("[remove_all_callbacks] Removed all callbacks")
 
     # public
-    # Calls all the functions registered for event_name.
-    # Allows to pass any number of arguments to the called functions.
+    # Calls the function registered for event_name.
+    # Allows to pass any number of arguments to the called function.
     # *args and **kwargs explanation here https://realpython.com/python-kwargs-and-args/
     def trigger(self, event_name, *args, **kwargs):
+        if event_name not in self._callbacks and event_name not in self._onetime_callbacks:
+            print("[trigger] WARN Event '" + event_name + "' triggered without listeners")
+        # one-time callbacks
+        elif event_name in self._onetime_callbacks:  # onetime callbacks take priority over normal ones
+            print("[trigger] Event '" + event_name + "' triggered one-time")
+            to_call = self._onetime_callbacks.pop(event_name)  # remove the callback from the list
+            to_call(*args, **kwargs)  # call the registered function
         # normal callbacks
-        if event_name not in self._callbacks or not self._callbacks[event_name]:
-            print("[trigger] Event '" + event_name + "' triggered without listeners")
         else:
-            to_call = list(self._callbacks[event_name])  # type: List
-            for callback in to_call:
-                print("[trigger] Event '" + event_name + "' triggered")
-                callback(*args, **kwargs)
-
-# TODO probably change from list of callbacks to only one callback per trigger allowed to be registered at a time
-
-        # # onetime callbacks with their removal
-        # to_call_onetime = list(self._onetime_callbacks.pop(event_name))  # type: List
-        # if event_name not in self._onetime_callbacks:
-        #     print("[trigger] Event '" + event_name + "' triggered onetime without listeners")
-        # else:
-        #     for onetime_callback in to_call_onetime:
-        #         print("[trigger] Event '" + event_name + "' triggered onetime")
-        #         onetime_callback(*args, **kwargs)
+            print("[trigger] Event '" + event_name + "' triggered")
+            self._callbacks[event_name](*args, **kwargs)  # call the registered function
 
 
-    # # public
-    # # Registers a one-time callback, that will be called only after the first event and then removed
-    # def add_onetime_callback(self, event_name, callback):
-    #     if event_name not in self._callbacks:
-    #         self._callbacks[event_name] = [callback]
-    #     else:
-    #         self._callbacks[event_name].append(callback)
-    #     print("[add_callback] Registered a one time callback for event '" + event_name + "'")
 

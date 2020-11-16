@@ -15,7 +15,7 @@ class CSVCIntro(CSViewContent):
 
     def show(self):
         # Create widgets
-        my_label = Tk.Label(self.csv.frame, text="Welcome. Press Enter or Space to start the test, Esc to exit")
+        my_label = Tk.Label(self.csv.frame, text="Welcome. Press Enter or Space to start the test, F for fullscreen or Esc to exit ")
 
         # Show widgets
         my_label.pack()

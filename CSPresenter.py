@@ -37,20 +37,21 @@ class CSPresenter:
         self._current_step = 0  # type: int
         self._current_number = 0  # type: int
 
+    # || The following functions each control a certain logical part/functionality of the app ||
+
+    # --- INTRO ---
     # public
     # Starts the whole test
     def start(self):
         self._cs_view.set_content(CSVCIntro(self._cs_view))
         self._cs_view.set_base_input_content(CSVCBase(self._cs_view))
         # self._cs_view.warp_time(2)
-        self._cs_event_system.add_callback("action", self._start_test)
+        self._cs_event_system.add_onetime_callback("action", self._start_test)
+        self._cs_event_system.add_onetime_callback("back", self._cs_view.close)
         self._cs_view.run()
 
-    # private
-    # The following functions each control a certain logical part/functionality of the app
-
-    # --- PREPARATION ---
     def _show_instructions(self):
+        print("Here follows instructions: Press space to space to space.")
         # todo
         pass
 
@@ -71,7 +72,7 @@ class CSPresenter:
         self._cs_view.set_timer(313, self._show_mask)
 
     def _show_mask(self):
-        self._cs_event_system.add_callback("action", self._action)
+        self._cs_event_system.add_onetime_callback("action", self._action)
         self._cs_view.set_content(CSVCImage(self._cs_view, "mask.png"))
         self._cs_view.set_timer(125, self._show_response)
 
@@ -84,7 +85,7 @@ class CSPresenter:
         self._cs_view.set_timer(375, self._show_fixation)
 
     def _show_fixation(self):
-        self._cs_event_system.remove_callback("action", self._action)
+        self._cs_event_system.remove_onetime_callback("action")
         self._cs_view.set_content(CSVCImage(self._cs_view, "fixation.png"))
         self._cs_view.set_timer(563, self._blink)
 
@@ -106,5 +107,10 @@ class CSPresenter:
     # --- RESULTS ---
     def _show_results(self):
         self._cs_event_system.remove_all_callbacks()
+        self._cs_event_system.add_callback("back", self._save_n_close)
         self._cs_event_system.add_callback("action_alt", self._start_test)
         self._cs_view.set_content(CSVCResults(self._cs_view))
+
+    def _save_n_close(self):
+        self._cs_data.save_to_file()
+        self._cs_view.close()
