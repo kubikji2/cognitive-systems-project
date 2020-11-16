@@ -53,7 +53,8 @@ class CSView:
     # '-> set new content
     # '-> clear frame
     # '-> bind new input control
-    # TODO: rework unbind/bind so that its quick in succession (no timewindow without input), mybe even check for same binding?
+    # TODO: rework unbind/bind so that its quick in succession (eg no timewindow without input when changing images during test), mybe even check for same binding?
+    # TODO EDIT: probably not needed with the new base input functionality
     def set_content(self, content):
         # type: (CSView, CSViewContent) -> None
 
