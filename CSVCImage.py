@@ -16,8 +16,9 @@ class CSVCImage(CSViewContent):
         # load and save reference to image see http://effbot.org/pyfaq/why-do-my-tkinter-images-not-appear.htm
         self.image_path = image_path
         img = Image.open(self.image_path)
-        img = img.resize((50, 50), Image.BICUBIC)  # Image.LANCZOS for high wuality
+        img = img.resize((50, 50), Image.LANCZOS)  # Image.NEAREST for fastest
         self.photo_img = ImageTk.PhotoImage(img)
+        # todo consider image loading into some cache, to not load them again every time
 
     def show(self):
         # Create widgets

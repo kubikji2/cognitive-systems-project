@@ -2,9 +2,9 @@
 
 import Tkinter as Tk
 from typing import List, Optional
+#from CSView import CSView
 # avoided cyclic dependecy in type hints using https://stackoverflow.com/questions/39740632/python-type-hinting-without-cyclic-imports
 # general info for type hints in Python 2.7 https://www.python.org/dev/peps/pep-0484/
-#from CSView import CSView
 
 """
 This abstract-like class take care of content shown in the CSView.
@@ -17,7 +17,7 @@ class CSViewContent:
     # '-> CSView is required for full control over the window visual
     # '-> List of keys used by the Content is neccessary to set up input handlers
     def __init__(self, cs_view, keys=[]):
-        # type: (CSView, Optional[List[str]]) -> None
+        # type: ('CSView', Optional[List[str]]) -> None
 
         # CSView containing the window I am drawing into
         self.csv = cs_view

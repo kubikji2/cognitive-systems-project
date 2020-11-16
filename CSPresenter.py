@@ -51,7 +51,6 @@ class CSPresenter:
         self._cs_view.run()
 
     def _show_instructions(self):
-        print("Here follows instructions: Press space to space to space.")
         # todo
         pass
 
