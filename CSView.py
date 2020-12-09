@@ -8,9 +8,12 @@ from CSViewContent import CSViewContent
 MOUSE_LABEL = "<Button-1>"
 
 """
-CSWindow (Cognitive Systems View) creates a Tkinter window.
+CSView (Cognitive Systems View) is a class providing methods for viewing content to the user and getting input. 
+Specifically, it is currently implemented using Tkinter library, creating and maintaining a window on desktop.
+TODO Possibly rather make an interface for view, and make this class a concrete Tkinter view implementation of it.
 Inside CSView the current CSViewContent is drawn (see CSViewContent class for futher details).
-CSView takes care of propagating user inputs (events) to the CSViewContent via binding and unbinding them and also redrawing whether new content is set via set_content method.
+CSView takes care of propagating user inputs (events) to the CSViewContent via binding and unbinding them 
+and also redrawing whether new content is set via set_content method.
 """
 class CSView:
 
@@ -21,8 +24,8 @@ class CSView:
         self.cs_event_system = cs_event_system  # type: CSEventSystem
         self._set_window()
         self._set_frame()
-        self._content = None  # type: Optional[CSViewContent]
-        self._base_input_content = None  # type: Optional[CSViewContent]
+        self._content = None  # type: Optional[CSViewContent]  # current viewing and input content
+        self._base_input_content = None  # type: Optional[CSViewContent]  # current additional (general) input content
         self._time_multiplier = 1
 
     # private
@@ -54,7 +57,7 @@ class CSView:
     # '-> clear frame
     # '-> bind new input control
     # TODO: rework unbind/bind so that its quick in succession (eg no timewindow without input when changing images during test), mybe even check for same binding?
-    # TODO EDIT: probably not needed with the new base input functionality
+    # TODO EDIT: probably not needed with the new base input content approach
     def set_content(self, content):
         # type: (CSView, CSViewContent) -> None
 
@@ -66,7 +69,7 @@ class CSView:
         self._content.show()
 
     # public
-    # take and bind keys from specified content CSWindow Content
+    # only take and bind input keys from a specified content CSWindow Content
     # '-> unbind previous input control
     # '-> bind new input control
     # TODO: probably could be done better way?

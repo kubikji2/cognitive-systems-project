@@ -4,7 +4,7 @@ import Tkinter as Tk
 from CSViewContent import CSViewContent
 
 """
-Content with base input controls for the Tkinter window and now show method
+A view content class, which only contains a set of generally used control. It does not have a show method.
 """
 class CSVCBase(CSViewContent):
 

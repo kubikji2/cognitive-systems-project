@@ -41,11 +41,11 @@ class CSPresenter:
 
     # --- INTRO ---
     # public
-    # Starts the whole test
+    # Starts the whole test appeara
     def start(self):
         self._cs_view.set_content(CSVCIntro(self._cs_view))
         self._cs_view.set_base_input_content(CSVCBase(self._cs_view))
-        # self._cs_view.warp_time(2)
+        # self._cs_view.warp_time(2)  # DEBUGGING SETTINGS
         self._cs_event_system.add_onetime_callback("action", self._start_test)
         self._cs_event_system.add_onetime_callback("back", self._cs_view.close)
         self._cs_view.run()
@@ -58,13 +58,15 @@ class CSPresenter:
         # todo
         pass
 
-    # --- TEST ---
+    # --- TEST SEQUENCE ---
+    # wait a while and then display first number
     def _start_test(self):
         self._cs_event_system.remove_all_callbacks()
         self._current_step = 1
         self._cs_view.clear_content()
         self._cs_view.set_timer(225, self._show_number)
 
+    # -- in a loop --
     def _show_number(self):
         self._current_number = rnd.randrange(0, 10)
         self._cs_view.set_content(CSVCNumber(self._cs_view, self._current_number))
@@ -73,9 +75,9 @@ class CSPresenter:
     def _show_mask(self):
         self._cs_event_system.add_onetime_callback("action", self._action)
         self._cs_view.set_content(CSVCImage(self._cs_view, "mask.png"))
-        self._cs_view.set_timer(125, self._show_response)
+        self._cs_view.set_timer(125, self._show_response_cue)
 
-    def _show_response(self):
+    def _show_response_cue(self):
         self._cs_view.set_content(CSVCImage(self._cs_view, "response.png"))
         self._cs_view.set_timer(63, self._show_after_mask)
 
@@ -88,6 +90,7 @@ class CSPresenter:
         self._cs_view.set_content(CSVCImage(self._cs_view, "fixation.png"))
         self._cs_view.set_timer(563, self._blink)
 
+    # blink to black for a short period and decide whether to continue looping or show result screen
     def _blink(self):
         self._cs_view.clear_content()
         if self._current_step == self._step_count:
@@ -95,8 +98,9 @@ class CSPresenter:
         else:
             self._current_step += 1
             self._cs_view.set_timer(20, self._show_number)
+    # -- loop end --
 
-
+    # --- INPUT EVALUATION ---
     def _action(self):
         if self._current_number == 3:
             print("[app] ----------- WRONG PRESS!")
@@ -106,8 +110,8 @@ class CSPresenter:
     # --- RESULTS ---
     def _show_results(self):
         self._cs_event_system.remove_all_callbacks()
-        self._cs_event_system.add_callback("back", self._save_n_close)
-        self._cs_event_system.add_callback("action_alt", self._start_test)
+        self._cs_event_system.add_onetime_callback("back", self._save_n_close)
+        self._cs_event_system.add_onetime_callback("action_alt", self._start_test)
         self._cs_view.set_content(CSVCResults(self._cs_view))
 
     def _save_n_close(self):

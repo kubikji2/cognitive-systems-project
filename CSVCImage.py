@@ -5,7 +5,7 @@ from PIL import ImageTk, Image
 from CSViewContent import CSViewContent
 
 """
-Intruductory Windows content
+An 50x50 image specified in image_path
 """
 class CSVCImage(CSViewContent):
 
