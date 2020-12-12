@@ -60,15 +60,12 @@ class CSPresenter:
     def _start_test(self):
         self._cs_event_system.remove_all_callbacks()
         self._current_step = 1
-        self._current_number = 0
+        self._current_number = 1
         self._cs_view.clear_content()
         self._cs_view.set_timer(225, self._show_number)
 
     # -- in a loop --
     def _show_number(self):
-        self._current_number += 1
-        if self._current_number == 10:
-            self._current_number = 1
         self._cs_view.set_content(self._current_number)
         self._reset_stopwatch()
         self._cs_event_system.add_onetime_callback("action", self._action)
@@ -97,6 +94,9 @@ class CSPresenter:
             self._show_results()
         else:
             self._current_step += 1
+            self._current_number += 1
+            if self._current_number == 10:
+                self._current_number = 1
             self._show_number()
     # -- loop end --
 
