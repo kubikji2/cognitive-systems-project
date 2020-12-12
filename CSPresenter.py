@@ -59,8 +59,9 @@ class CSPresenter:
     # wait a while and then display first number
     def _start_test(self):
         self._cs_event_system.remove_all_callbacks()
-        self._current_step = 1
+        self._current_step = 0
         self._current_number = 1
+        self._cs_data.init_test_data(self._step_count)
         self._cs_view.clear_content()
         self._cs_view.set_timer(225, self._show_number)
 
@@ -90,10 +91,10 @@ class CSPresenter:
     # decide whether to continue looping or show result screen
     def _decide_test_end(self):
         # todo if action was not taken in this step, also write it down into data
+        self._current_step += 1
         if self._current_step == self._step_count:
             self._show_results()
         else:
-            self._current_step += 1
             self._current_number += 1
             if self._current_number == 10:
                 self._current_number = 1
@@ -102,10 +103,12 @@ class CSPresenter:
 
     # --- INPUT EVALUATION ---
     def _action(self):
+        action_time = self._get_stopwatch_time()
+        self._cs_data.save_reaction(self._current_step, action_time)
         if self._current_number == 3:
-            print("[app] WRONG after " + str(self._get_stopwatch_time()) + "s")
+            print("[app] WRONG after " + str(action_time) + "s")
         else:
-            print("[app] CORRECT after " + str(self._get_stopwatch_time()) + "s")
+            print("[app] CORRECT after " + str(action_time) + "s")
 
     # --- RESULTS ---
     def _show_results(self):
@@ -113,6 +116,8 @@ class CSPresenter:
         self._cs_event_system.add_onetime_callback("back", self._save_n_close)
         self._cs_event_system.add_onetime_callback("action_alt", self._start_test)
         self._cs_view.set_content("results")
+        # todo process collected data
+        self._cs_data.print_reactions()
 
 
     # || Helper functions ||
