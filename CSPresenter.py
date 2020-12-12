@@ -1,17 +1,13 @@
 #!/usr/bin/python2
 
 import random as rnd
+import time
 from typing import Optional
 
-from CSVCImage import CSVCImage
 from CSView import CSView
 from CSEventSystem import CSEventSystem
 from CSData import CSData
-from CSViewContent import CSViewContent
-from CSVCBase import CSVCBase
-from CSVCIntro import CSVCIntro
-from CSVCNumber import CSVCNumber
-from CSVCResults import CSVCResults
+
 
 """
 CSPresenter (Cognitive Systems Presenter) is a class
@@ -36,15 +32,16 @@ class CSPresenter:
         # state holders
         self._current_step = 0  # type: int
         self._current_number = 0  # type: int
+        self._stopwatch_start_time = 0  # type: float  # used as a store for measuring time of user input
 
     # || The following functions each control a certain logical part/functionality of the app ||
 
     # --- INTRO ---
     # public
-    # Starts the whole test appeara
+    # Sets up the app and shows it to user
     def start(self):
-        self._cs_view.set_content(CSVCIntro(self._cs_view))
-        self._cs_view.set_base_input_content(CSVCBase(self._cs_view))
+        self._cs_view.set_base_input_content("general_input")
+        self._cs_view.set_content("intro")
         # self._cs_view.warp_time(2)  # DEBUGGING SETTINGS
         self._cs_event_system.add_onetime_callback("action", self._start_test)
         self._cs_event_system.add_onetime_callback("back", self._cs_view.close)
@@ -68,30 +65,31 @@ class CSPresenter:
 
     # -- in a loop --
     def _show_number(self):
-        self._current_number = rnd.randrange(0, 10)
-        self._cs_view.set_content(CSVCNumber(self._cs_view, self._current_number))
+        self._cs_event_system.add_onetime_callback("action", self._action)
+        self._current_number = rnd.randrange(1, 10)
+        self._cs_view.set_content(self._current_number)
+        self._reset_stopwatch()
         self._cs_view.set_timer(313, self._show_mask)
 
     def _show_mask(self):
-        self._cs_event_system.add_onetime_callback("action", self._action)
-        self._cs_view.set_content(CSVCImage(self._cs_view, "mask.png"))
+        self._cs_view.set_content("mask")
         self._cs_view.set_timer(125, self._show_response_cue)
 
     def _show_response_cue(self):
-        self._cs_view.set_content(CSVCImage(self._cs_view, "response.png"))
+        self._cs_view.set_content("response")
         self._cs_view.set_timer(63, self._show_after_mask)
 
     def _show_after_mask(self):
-        self._cs_view.set_content(CSVCImage(self._cs_view, "mask.png"))
+        self._cs_view.set_content("mask")
         self._cs_view.set_timer(375, self._show_fixation)
 
     def _show_fixation(self):
-        self._cs_event_system.remove_onetime_callback("action")
-        self._cs_view.set_content(CSVCImage(self._cs_view, "fixation.png"))
+        self._cs_view.set_content("fixation")
         self._cs_view.set_timer(563, self._blink)
 
     # blink to black for a short period and decide whether to continue looping or show result screen
     def _blink(self):
+        self._cs_event_system.remove_onetime_callback("action")
         self._cs_view.clear_content()
         if self._current_step == self._step_count:
             self._cs_view.set_timer(20, self._show_results)
@@ -103,17 +101,32 @@ class CSPresenter:
     # --- INPUT EVALUATION ---
     def _action(self):
         if self._current_number == 3:
-            print("[app] ----------- WRONG PRESS!")
+            print("[app] ----------- WRONG PRESS!  " + str(self._get_stopwatch_time()) + "s --------")
         else:
-            print("[app] ----------- CORRECT PRESS!")
+            print("[app] ----------- CORRECT PRESS!  " + str(self._get_stopwatch_time()) + "s --------")
 
     # --- RESULTS ---
     def _show_results(self):
         self._cs_event_system.remove_all_callbacks()
         self._cs_event_system.add_onetime_callback("back", self._save_n_close)
         self._cs_event_system.add_onetime_callback("action_alt", self._start_test)
-        self._cs_view.set_content(CSVCResults(self._cs_view))
+        self._cs_view.set_content("results")
 
+
+    # || Helper functions ||
+
+    # a call that saves the collecteded data and exits the application
     def _save_n_close(self):
         self._cs_data.save_to_file()
         self._cs_view.close()
+
+    # start the stopwatch
+    def _reset_stopwatch(self):
+        # type: (CSPresenter) -> None
+        self._stopwatch_start_time = time.clock()  # in python 3, the preffered call would be time.perf_counter()
+
+    # stop stopwatch stopwatch and get time
+    def _get_stopwatch_time(self):
+        # type: (CSPresenter) -> float
+        return time.clock() - self._stopwatch_start_time
+

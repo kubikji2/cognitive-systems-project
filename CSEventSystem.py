@@ -7,7 +7,7 @@ Current list of commands (event names) for CSPresenter:
 - "action"
 - "action_alt"
 - "back"
-Another examples: "move", etc. - generalized input actions applicable on multiple platforms
+Another possible examples: "move", etc. - generalized input actions applicable on multiple platforms
 """
 
 

@@ -1,9 +1,14 @@
 #!/usr/bin/python2
 
 import Tkinter as Tk
-from typing import Optional, Callable
+from typing import Optional, Callable, Dict, Union
 from CSEventSystem import CSEventSystem
 from CSViewContent import CSViewContent
+from CSVCGeneral import CSVCGeneral
+from CSVCIntro import CSVCIntro
+from CSVCNumber import CSVCNumber
+from CSVCImage import CSVCImage
+from CSVCResults import CSVCResults
 
 MOUSE_LABEL = "<Button-1>"
 
@@ -28,6 +33,17 @@ class CSView:
         self._base_input_content = None  # type: Optional[CSViewContent]  # current additional (general) input content
         self._time_multiplier = 1
 
+        # view content cache -> faster changes in view (specifically because of image loading)
+        self._csvc_cache = {}  # type: Dict[Union[str, int], CSViewContent]
+        self._csvc_cache["general_input"] = CSVCGeneral(self)
+        self._csvc_cache["intro"] = CSVCIntro(self)
+        self._csvc_cache["mask"] = CSVCImage(self, "mask.png")
+        self._csvc_cache["response"] = CSVCImage(self, "response.png")
+        self._csvc_cache["fixation"] = CSVCImage(self, "fixation.png")
+        for i in range(1, 10):
+            self._csvc_cache[i] = CSVCNumber(self, i)
+        self._csvc_cache["results"] = CSVCResults(self)
+
     # private
     # set up window
     def _set_window(self):
@@ -51,35 +67,39 @@ class CSView:
         self.window.mainloop()
 
     # public
-    # set new CSWindow Content
+    # set to view a specified CSWindow Content that is stored in cache under content_name
     # '-> unbind previous input control
     # '-> set new content
     # '-> clear frame
     # '-> bind new input control
-    # TODO: rework unbind/bind so that its quick in succession (eg no timewindow without input when changing images during test), mybe even check for same binding?
-    # TODO EDIT: probably not needed with the new base input content approach
-    def set_content(self, content):
-        # type: (CSView, CSViewContent) -> None
+    def set_content(self, content_name):
+        # type: (CSView, Union[str, int]) -> None
 
         if self._content is not None:
             self._content.unbind()
-        self._content = content
-        self.clear_content()
-        self._content.bind()
-        self._content.show()
+        if content_name in self._csvc_cache:
+            self._content = self._csvc_cache[content_name]
+            self.clear_content()
+            self._content.bind()
+            self._content.show()
+        else:
+            print ("[view] ERROR: specified view content '" + str(content_name) + "' not found")
 
     # public
     # only take and bind input keys from a specified content CSWindow Content
     # '-> unbind previous input control
     # '-> bind new input control
-    # TODO: probably could be done better way?
-    def set_base_input_content(self, content):
-        # type: (CSView, CSViewContent) -> None
+    # TODO: probably could be done in a better way
+    def set_base_input_content(self, content_name):
+        # type: (CSView, Union[str, int]) -> None
 
         if self._base_input_content is not None:
             self._base_input_content.unbind()
-        self._base_input_content = content
-        self._base_input_content.bind()
+        if content_name in self._csvc_cache:
+            self._base_input_content = self._csvc_cache[content_name]
+            self._base_input_content.bind()
+        else:
+            print ("[view] ERROR: specified input content '" + str(content_name) + "' not found")
 
     # public
     # clears frame from any content
