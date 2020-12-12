@@ -21,7 +21,8 @@ class CSVCNumber(CSViewContent):
         # Create widgets
 
         my_label = Tk.Label(self.csv.frame, text=str(self.number))
-        my_label.config(font=("Arial", rnd.randrange(26, 48)))
+        # my_label.config(font=("Arial", rnd.randrange(26, 48)))
+        my_label.config(font=("Arial",  48))
         # Show widgets
         my_label.pack()
 

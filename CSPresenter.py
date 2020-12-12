@@ -21,13 +21,13 @@ class CSPresenter:
     def __init__(self, cs_view, cs_event_system, cs_data):
         # type: (CSView, CSEventSystem, CSData) -> None
 
-        print("yay test instantiated")
+        print("[app] yay presenter instantiated")
         self._cs_view = cs_view
         self._cs_event_system = cs_event_system
         self._cs_data = cs_data
 
         # SART config
-        self._step_count = 10  # type: int
+        self._step_count = 18  # type: int
 
         # state holders
         self._current_step = 0  # type: int
@@ -40,7 +40,7 @@ class CSPresenter:
     # public
     # Sets up the app and shows it to user
     def start(self):
-        self._cs_view.set_base_input_content("general_input")
+        self._cs_view.set_base_input_content("general_input")  # (esc, space, enter, and f)
         self._cs_view.set_content("intro")
         # self._cs_view.warp_time(2)  # DEBUGGING SETTINGS
         self._cs_event_system.add_onetime_callback("action", self._start_test)
@@ -52,7 +52,7 @@ class CSPresenter:
         pass
 
     def _start_tutorial(self):
-        # todo
+        # todo?
         pass
 
     # --- TEST SEQUENCE ---
@@ -60,15 +60,18 @@ class CSPresenter:
     def _start_test(self):
         self._cs_event_system.remove_all_callbacks()
         self._current_step = 1
+        self._current_number = 0
         self._cs_view.clear_content()
         self._cs_view.set_timer(225, self._show_number)
 
     # -- in a loop --
     def _show_number(self):
-        self._cs_event_system.add_onetime_callback("action", self._action)
-        self._current_number = rnd.randrange(1, 10)
+        self._current_number += 1
+        if self._current_number == 10:
+            self._current_number = 1
         self._cs_view.set_content(self._current_number)
         self._reset_stopwatch()
+        self._cs_event_system.add_onetime_callback("action", self._action)
         self._cs_view.set_timer(313, self._show_mask)
 
     def _show_mask(self):
@@ -85,25 +88,24 @@ class CSPresenter:
 
     def _show_fixation(self):
         self._cs_view.set_content("fixation")
-        self._cs_view.set_timer(563, self._blink)
+        self._cs_view.set_timer(563, self._decide_test_end)
 
-    # blink to black for a short period and decide whether to continue looping or show result screen
-    def _blink(self):
-        self._cs_event_system.remove_onetime_callback("action")
-        self._cs_view.clear_content()
+    # decide whether to continue looping or show result screen
+    def _decide_test_end(self):
+        # todo if action was not taken in this step, also write it down into data
         if self._current_step == self._step_count:
-            self._cs_view.set_timer(20, self._show_results)
+            self._show_results()
         else:
             self._current_step += 1
-            self._cs_view.set_timer(20, self._show_number)
+            self._show_number()
     # -- loop end --
 
     # --- INPUT EVALUATION ---
     def _action(self):
         if self._current_number == 3:
-            print("[app] ----------- WRONG PRESS!  " + str(self._get_stopwatch_time()) + "s --------")
+            print("[app] WRONG after " + str(self._get_stopwatch_time()) + "s")
         else:
-            print("[app] ----------- CORRECT PRESS!  " + str(self._get_stopwatch_time()) + "s --------")
+            print("[app] CORRECT after " + str(self._get_stopwatch_time()) + "s")
 
     # --- RESULTS ---
     def _show_results(self):

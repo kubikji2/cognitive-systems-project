@@ -15,7 +15,7 @@ MOUSE_LABEL = "<Button-1>"
 """
 CSView (Cognitive Systems View) is a class providing methods for viewing content to the user and getting input. 
 Specifically, it is currently implemented using Tkinter library, creating and maintaining a window on desktop.
-TODO Possibly rather make an interface for view, and make this class a concrete Tkinter view implementation of it.
+TODO Possibly rather make an interface/abstract class for view, and make this class a concrete Tkinter view implementation of it.
 Inside CSView the current CSViewContent is drawn (see CSViewContent class for futher details).
 CSView takes care of propagating user inputs (events) to the CSViewContent via binding and unbinding them 
 and also redrawing whether new content is set via set_content method.
