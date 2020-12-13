@@ -1,19 +1,19 @@
 #!/usr/bin/python2
 
 import Tkinter as Tk
-from CSViewContent import CSViewContent
+from TkinterViewContent import TkinterViewContent
 import random as rnd
 
 
 """
 Specified number displayed
 """
-class CSVCNumber(CSViewContent):
+class TVCNumber(TkinterViewContent):
 
     def __init__(self, cs_view, number=0):
         # base constructor call
         # it requires list of the keys to listen
-        CSViewContent.__init__(self, cs_view)
+        TkinterViewContent.__init__(self, cs_view)
         # set this content's parameters
         self.number = number
 

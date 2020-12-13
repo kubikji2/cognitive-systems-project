@@ -1,17 +1,17 @@
 #!/usr/bin/python2
 
 import Tkinter as Tk
-from CSViewContent import CSViewContent
+from TkinterViewContent import TkinterViewContent
 
 """
 Intruductory View content
 """
-class CSVCIntro(CSViewContent):
+class TVCIntro(TkinterViewContent):
 
     def __init__(self, cs_view):
         # base constructor call
         # it requires list of the keys to listen
-        CSViewContent.__init__(self, cs_view)
+        TkinterViewContent.__init__(self, cs_view)
 
     def show(self):
         # Create widgets

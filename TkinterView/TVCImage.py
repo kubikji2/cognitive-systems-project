@@ -2,17 +2,17 @@
 
 import Tkinter as Tk
 from PIL import ImageTk, Image
-from CSViewContent import CSViewContent
+from TkinterViewContent import TkinterViewContent
 
 """
 An 50x50 image specified in image_path
 """
-class CSVCImage(CSViewContent):
+class TVCImage(TkinterViewContent):
 
     def __init__(self, cs_view, image_path):
         # base constructor call
         # it requires list of the keys to listen
-        CSViewContent.__init__(self, cs_view)
+        TkinterViewContent.__init__(self, cs_view)
         # load and save reference to image see http://effbot.org/pyfaq/why-do-my-tkinter-images-not-appear.htm
         self.image_path = image_path
         img = Image.open(self.image_path)
@@ -25,9 +25,3 @@ class CSVCImage(CSViewContent):
         my_label = Tk.Label(self.csv.frame, image=self.photo_img)
         # Show widgets
         my_label.pack()
-
-    def key_callback(self, event):
-        pass
-
-    def mouse_callback(self, event):
-        pass

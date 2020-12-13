@@ -2,16 +2,16 @@
 
 import Tkinter as Tk
 from typing import List, Optional
-#from CSView import CSView
+# from CSView import CSView
 # avoided cyclic dependecy in type hints using https://stackoverflow.com/questions/39740632/python-type-hinting-without-cyclic-imports
 # general info for type hints in Python 2.7 https://www.python.org/dev/peps/pep-0484/
 
 """
-This abstract-like class take care of content shown in the CSView.
-Each inherited class should be named in format CSVC+Name.
+This abstract-like class take care of content shown in the TkinterView.
+Each inherited class should be named in format TVC+Name.
 If there are any keyboard keys used as input, pass them in the constructor.
 """
-class CSViewContent:
+class TkinterViewContent:
 
     # constructor
     # '-> CSView is required for full control over the window visual
@@ -54,6 +54,11 @@ class CSViewContent:
     # abstract
     # create and show the contents using Tkinter
     def show(self):
+        print("TBD")
+
+    # abstract
+    # specify data to view
+    def set_data(self, data):
         print("TBD")
 
     # abstract

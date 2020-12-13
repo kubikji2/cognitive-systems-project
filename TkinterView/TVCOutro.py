@@ -1,18 +1,18 @@
 #!/usr/bin/python2
 
 import Tkinter as Tk
-from CSViewContent import CSViewContent
+from TkinterViewContent import TkinterViewContent
 
 
 """
-Intruductory Windows content
+Outro screen with options to redo the test or show results
 """
-class CSVCResults(CSViewContent):
+class TVCOutro(TkinterViewContent):
 
     def __init__(self, cs_view):
         # base constructor call
         # it requires list of the keys to listen
-        CSViewContent.__init__(self, cs_view, ['r'])
+        TkinterViewContent.__init__(self, cs_view, ['r'])
 
     def show(self):
         # Create widgets

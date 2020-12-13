@@ -40,11 +40,12 @@ class CSPresenter:
     # public
     # Sets up the app and shows it to user
     def start(self):
+        self._cs_event_system.remove_all_callbacks()
+        self._cs_event_system.add_onetime_callback("action", self._start_test)
+        self._cs_event_system.add_onetime_callback("back", self._cs_view.close)
         self._cs_view.set_base_input_content("general_input")  # (esc, space, enter, and f)
         self._cs_view.set_content("intro")
         # self._cs_view.warp_time(2)  # DEBUGGING SETTINGS
-        self._cs_event_system.add_onetime_callback("action", self._start_test)
-        self._cs_event_system.add_onetime_callback("back", self._cs_view.close)
         self._cs_view.run()
 
     def _show_instructions(self):
@@ -93,7 +94,7 @@ class CSPresenter:
         # todo if action was not taken in this step, also write it down into data
         self._current_step += 1
         if self._current_step == self._step_count:
-            self._show_results()
+            self._show_outro()
         else:
             self._current_number += 1
             if self._current_number == 10:
@@ -110,14 +111,18 @@ class CSPresenter:
         else:
             print("[app] CORRECT after " + str(action_time) + "s")
 
-    # --- RESULTS ---
-    def _show_results(self):
+    # --- OUTRO ---
+    def _show_outro(self):
         self._cs_event_system.remove_all_callbacks()
         self._cs_event_system.add_onetime_callback("back", self._save_n_close)
         self._cs_event_system.add_onetime_callback("action_alt", self._start_test)
-        self._cs_view.set_content("results")
-        # todo process collected data
+        self._cs_event_system.add_onetime_callback("action", self._show_results)
         self._cs_data.print_reactions()
+        self._cs_view.set_content("outro")
+
+    def _show_results(self):
+        # todo process collected data
+        self._cs_view.set_content("results")
 
 
     # || Helper functions ||
@@ -126,6 +131,10 @@ class CSPresenter:
     def _save_n_close(self):
         self._cs_data.save_to_file()
         self._cs_view.close()
+
+    def _save_n_restart(self):
+        self._cs_data.save_to_file()
+
 
     # start the stopwatch
     def _reset_stopwatch(self):
