@@ -10,24 +10,17 @@ Specified number displayed
 """
 class TVCNumber(TkinterViewContent):
 
-    def __init__(self, cs_view, number=0):
-        # base constructor call
-        # it requires list of the keys to listen
-        TkinterViewContent.__init__(self, cs_view)
-        # set this content's parameters
-        self.number = number
+    def __init__(self):
+        self.number = 0
 
-    def show(self):
+    def show(self, parent):
         # Create widgets
 
-        my_label = Tk.Label(self.csv.frame, text=str(self.number))
+        my_label = Tk.Label(parent, text=str(self.number))
         # my_label.config(font=("Arial", rnd.randrange(26, 48)))
         my_label.config(font=("Arial",  48))
         # Show widgets
         my_label.pack()
 
-    def key_callback(self, event):
-        pass
-
-    def mouse_callback(self, event):
-        pass
+    def set_data(self, data):
+        self.number = data

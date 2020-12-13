@@ -1,7 +1,7 @@
 #!/usr/bin/python2
 
 import TkinterView as Tk
-from typing import Optional, Callable, Dict, Union
+from typing import Optional, Callable, Dict, Union, Any
 from CSEventSystem import CSEventSystem
 
 """
@@ -23,11 +23,7 @@ class CSView:
     # public
     # set to view a specified view content
     def set_content(self, content_name, data=None):
-        print("TBD")
-
-    # public
-    # only take and bind general input from a specified view content
-    def set_base_input_content(self, content_name):
+        # type: (str, Any) -> None
         print("TBD")
 
     # public

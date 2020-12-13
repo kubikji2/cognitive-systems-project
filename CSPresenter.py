@@ -43,7 +43,6 @@ class CSPresenter:
         self._cs_event_system.remove_all_callbacks()
         self._cs_event_system.add_onetime_callback("action", self._start_test)
         self._cs_event_system.add_onetime_callback("back", self._cs_view.close)
-        self._cs_view.set_base_input_content("general_input")  # (esc, space, enter, and f)
         self._cs_view.set_content("intro")
         # self._cs_view.warp_time(2)  # DEBUGGING SETTINGS
         self._cs_view.run()
@@ -68,7 +67,7 @@ class CSPresenter:
 
     # -- in a loop --
     def _show_number(self):
-        self._cs_view.set_content(self._current_number)
+        self._cs_view.set_content("number", self._current_number)
         self._reset_stopwatch()
         self._cs_event_system.add_onetime_callback("action", self._action)
         self._cs_view.set_timer(313, self._show_mask)
@@ -114,27 +113,18 @@ class CSPresenter:
     # --- OUTRO ---
     def _show_outro(self):
         self._cs_event_system.remove_all_callbacks()
-        self._cs_event_system.add_onetime_callback("back", self._save_n_close)
-        self._cs_event_system.add_onetime_callback("action_alt", self._start_test)
         self._cs_event_system.add_onetime_callback("action", self._show_results)
         self._cs_data.print_reactions()
         self._cs_view.set_content("outro")
 
     def _show_results(self):
         # todo process collected data
+        self._cs_data.save_to_file()
+        self._cs_event_system.add_onetime_callback("action_alt", self.start)
+        self._cs_event_system.add_onetime_callback("back", self._cs_view.close)
         self._cs_view.set_content("results")
 
-
     # || Helper functions ||
-
-    # a call that saves the collecteded data and exits the application
-    def _save_n_close(self):
-        self._cs_data.save_to_file()
-        self._cs_view.close()
-
-    def _save_n_restart(self):
-        self._cs_data.save_to_file()
-
 
     # start the stopwatch
     def _reset_stopwatch(self):

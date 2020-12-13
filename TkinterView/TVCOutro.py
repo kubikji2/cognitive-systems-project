@@ -9,21 +9,11 @@ Outro screen with options to redo the test or show results
 """
 class TVCOutro(TkinterViewContent):
 
-    def __init__(self, cs_view):
-        # base constructor call
-        # it requires list of the keys to listen
-        TkinterViewContent.__init__(self, cs_view, ['r'])
-
-    def show(self):
+    def show(self, parent):
         # Create widgets
-        my_label = Tk.Label(self.csv.frame, text="Congratulations on finishing the test! Press R to restart or Esc to save results and quit")
+        my_label = Tk.Label(parent, text="Congratulations on finishing the test!")
+        my_label2 = Tk.Label(parent, text="Press space/enter to evaluate results")
 
         # Show widgets
         my_label.pack()
-
-    def key_callback(self, event):
-        if event.char == 'r':
-            self.csv.cs_event_system.trigger("action_alt")
-
-    def mouse_callback(self, event):
-        pass
+        my_label2.pack()

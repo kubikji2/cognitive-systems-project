@@ -9,21 +9,17 @@ Screen showing the results to the user
 """
 class TVCResults(TkinterViewContent):
 
-    def __init__(self, cs_view):
-        # base constructor call
-        # it requires list of the keys to listen
-        TkinterViewContent.__init__(self, cs_view, ['r'])
+    def __init__(self):
+        pass
 
-    def show(self):
+    def show(self, parent):
         # Create widgets
-        my_label = Tk.Label(self.csv.frame, text="Here are your results")
+        my_label = Tk.Label(parent, text="Your results were saved on disk, here you can view them")
+        my_label2 = Tk.Label(parent, text="Press R to try again or esc/backspace quit")
 
         # Show widgets
         my_label.pack()
-
-    def key_callback(self, event):
-        if event.char == 'r':
-            self.csv.cs_event_system.trigger("action_alt")
+        my_label2.pack()
 
     def set_data(self, data):
         pass
