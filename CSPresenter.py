@@ -64,12 +64,12 @@ class CSPresenter:
         self._cs_data.init_test_data(self._step_count)
         self._cs_view.clear_content()
         self._cs_view.set_timer(225, self._show_number)
+        self._cs_event_system.add_callback("action", self._action)
 
     # -- in a loop --
     def _show_number(self):
-        self._cs_view.set_content("number", self._current_number)
         self._reset_stopwatch()
-        self._cs_event_system.add_onetime_callback("action", self._action)
+        self._cs_view.set_content("number", self._current_number)
         self._cs_view.set_timer(313, self._show_mask)
 
     def _show_mask(self):
@@ -105,10 +105,11 @@ class CSPresenter:
     def _action(self):
         action_time = self._get_stopwatch_time()
         self._cs_data.save_reaction(self._current_step, action_time)
+        # debug
         if self._current_number == 3:
-            print("[app] WRONG after " + str(action_time) + "s")
+            print("[app] WRONG after", action_time, "s")
         else:
-            print("[app] CORRECT after " + str(action_time) + "s")
+            print("[app] CORRECT after", action_time, "s")
 
     # --- OUTRO ---
     def _show_outro(self):
@@ -118,7 +119,8 @@ class CSPresenter:
         self._cs_view.set_content("outro")
 
     def _show_results(self):
-        # todo process collected data
+        self._cs_data.evaluate_results()
+        self._cs_data.print_results()
         self._cs_data.save_to_file()
         self._cs_event_system.add_onetime_callback("action_alt", self.start)
         self._cs_event_system.add_onetime_callback("back", self._cs_view.close)

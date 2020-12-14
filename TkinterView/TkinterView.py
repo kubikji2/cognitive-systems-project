@@ -6,6 +6,7 @@
 import Tkinter as Tk
 from typing import Optional, Callable, Dict, Union, Any
 from CSEventSystem import CSEventSystem
+from CSData import CSData
 from CSView import CSView
 from TkinterViewContent import TkinterViewContent
 from TVCIntro import TVCIntro
@@ -23,9 +24,9 @@ and also redrawing whether new content is set via set_content method.
 """
 class TkinterView(CSView):
 
-    def __init__(self, cs_event_system):
-        # type: (CSEventSystem) -> None
-        CSView.__init__(self, cs_event_system)
+    def __init__(self, cs_event_system, cs_data):
+        # type: (CSEventSystem, CSData) -> None
+        CSView.__init__(self, cs_event_system, cs_data)
 
         # set up window and frame
         self._set_window()
