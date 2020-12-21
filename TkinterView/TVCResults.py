@@ -41,16 +41,17 @@ class TVCResults(TkinterViewContent):
         lbl_mean = Tk.Label(frm_left, text="Mean RT (respnonse time): {:.0f} ms".format(self._cs_data.get_mean()[WHOLE]), font=("Arial", 16))
         lbl_std_dev = Tk.Label(frm_left, text="Standart deviation of RT: {:.0f} ms".format(self._cs_data.get_std_dev()[WHOLE]), font=("Arial", 16))
         lbl_com_err = Tk.Label(frm_left, text="Comission errors (presses on '3'): {}".format(self._cs_data.get_comission_errors()[WHOLE]), font=("Arial", 16))
-        lbl_omi_err = Tk.Label(frm_left, text="Omission errors (missed presses): {}".format(self._cs_data.get_comission_errors()[WHOLE]), font=("Arial", 16))
+        lbl_omi_err = Tk.Label(frm_left, text="Omission errors (missed presses): {}".format(self._cs_data.get_omission_errors()[WHOLE]), font=("Arial", 16))
         lbl_rnd_err = Tk.Label(frm_left, text="Other errors (multiple/early/late presses): {}".format(self._cs_data.get_comission_errors()[WHOLE]), font=("Arial", 16))
 
         #    RIGHT
-        fig_rt = plot.Figure(figsize=(6, 5), dpi=100)
-        plt_rt = fig_rt.add_subplot(111)
-        plt_rt.set_title('The Title for your chart')
+        fig_rt = plot.Figure(figsize=(4, 3), dpi=100)  # create a canvas to draw
+        axes_rt = fig_rt.add_subplot(111)  # create an axes object
+        axes_rt.set_title('Response times')
         x_rt = self._cs_data.get_step_nums_stripped()[WHOLE]
         y_rt = self._cs_data.get_ms_stripped()[WHOLE]
-        plt_rt.plot(x_rt, y_rt)  # , kind='bar', legend=True from pyplot
+        axes_rt.bar(x_rt, y_rt)
+        # axes_rt.plot(x_rt, y_rt)  # , kind='bar', legend=True from pyplot
 
         cnvs_rt = FigureCanvasTkAgg(fig_rt, frm_right)
         cnvs_rt.draw()

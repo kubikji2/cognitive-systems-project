@@ -26,8 +26,8 @@ class CSPresenter:
         self._cs_event_system = cs_event_system
 
         # SART config
-        self._step_count = 5  # type: int
-        self._tutorial_step_count = 3  # type: int
+        self._step_count = 18  # type: int
+        self._tutorial_step_count = 9  # type: int
 
         # state holders
         self._current_cs_data = None  # type: Optional[CSData]
