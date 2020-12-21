@@ -1,7 +1,8 @@
 #!/usr/bin/python2
 
-from typing import List
-import math
+from typing import List, Tuple
+import numpy as np
+import datetime
 
 WHOLE = 0
 FIRST = 1
@@ -11,47 +12,68 @@ SECOND = 2
 A class for storing and processing test data
 """
 class CSData:
-    # data type specifications for better debugging
+    # (data type specifications for better debugging)
+
+    # test info
     _step_count = None  # type: List[int]
+    _name = None  # type: str # todo
+    _timestamp = None  # type
+
+    # list for reaction collection
+    _seconds = []  # type: List[float]  # saved user input times in seconds per step (0 if no key pressed)
+
+    # resulting stats: [0] whole [1] first half [2] second half
     _ms = None  # type: List[List[float]]
     _ms_stripped = None  # type: List[List[float]]
+    _step_nums_stripped = None  # type: List[List[int]]
     _ms_interpolated = None  # type: List[List[float]]
     _ms_by_number = None  # type: List[List[float]]
     _mean = None  # type: List[float]
     _std_dev = None  # type: List[float]
+    _regression_line = None  # type: Tuple[float, float]
     _comission_errors = None  # type: List[int]
     _omission_errors = None  # type: List[int]
     _random_errors = None  # type: List[int]
 
-    def __init__(self):
-        # collected list
-        self._seconds = []  # type: List[float] # saved user input times in seconds per step (0 if no key pressed)
+    # CSData can either be instantiated as:
+    # a new data instance by passing step_count and name
+    # or
+    # loaded from an exisisting file by passing filename
 
-        # resulting stats: [0] whole [1] first half [2] second half
-        self._ms = [[], [], []]  # times in ms
-        self._ms_stripped = [[], [], []]  # only correct presses for means and slope
-        self._ms_interpolated = [[], [], []]  # for FFT analysis
-        self._step_count = [0, 0, 0]
-        self._mean = [0, 0, 0]
-        self._std_dev = [0, 0, 0]
-        self._comission_errors = [0, 0, 0]  # presses on target trials
-        self._omission_errors = [0, 0, 0]  # missed presses on non-target trials
-        self._random_errors = [0, 0, 0]  # presses out of regular time window or multiple presses per step
+    def __init__(self, step_count=None, name=None, filename=None):
+        # type: (int, str, str) -> None
+
+        if step_count is not None and name is not None:
+            self._step_count = [[], [], []]
+            self._step_count[WHOLE] = step_count
+            # calculate how many steps will be in each half of the test
+            bigger_half = (self._step_count[WHOLE] + 1) // 2  # bigger half if odd number of steps
+            self._step_count[FIRST] = bigger_half
+            self._step_count[SECOND] = self._step_count[WHOLE] - bigger_half
+            self._name = name
+            self._timestamp = datetime.datetime.now()  # save creation time
+            # allocate list for reaction collection
+            self._seconds = [0.0] * step_count
+            # init dummy results
+            self._ms = [[], [], []]  # times in ms
+            self._ms_stripped = [[], [], []]  # only correct presses for means and slope
+            self._step_nums_stripped = [[], [], []]  # specifies the step numbers of the corresponding stripped times
+            self._ms_interpolated = [[], [], []]  # for FFT analysis
+            self._mean = [0.0, 0.0, 0.0]
+            self._std_dev = [0.0, 0.0, 0.0]
+            self._regression_line = (0.0, 0.0)  # [0] is the y offset, [1] is the slope
+            self._comission_errors = [0, 0, 0]  # presses on target trials
+            self._omission_errors = [0, 0, 0]  # missed presses on non-target trials
+            self._random_errors = [0, 0, 0]  # presses out of regular time window or multiple presses per step
+
+        elif filename is not None:
+            pass
+            # todo load from file
+
+        else:
+            print("[CSData] ERROR - please specify either step_count and name or filename when creating this object")
 
     # --- interface for PRESENTER ---
-
-    # must be called before you call save_reaction for the first time, inits the data list with zeros for given length
-    def init_test_data(self, step_count):
-        # type: (int) -> None
-        # init data
-        self.__init__()
-        self._step_count[WHOLE] = step_count
-        self._seconds = [0] * step_count
-
-        # calculate how many steps will be in each half of the test
-        bigger_half = (self._step_count[WHOLE] + 1) // 2  # bigger half if odd number of steps
-        self._step_count[FIRST] = bigger_half
-        self._step_count[SECOND] = self._step_count[WHOLE] - bigger_half
 
     # saves the time for a specified step into the data list
     def save_reaction(self, step, time):
@@ -75,6 +97,7 @@ class CSData:
         self._prepare_data()
         self._calculate_mean()
         self._calculate_std_dev()
+        self._do_linear_regression()
 
     # debug function to print calculated results
     def print_results(self):
@@ -89,7 +112,7 @@ class CSData:
         print("Random errors:", self._random_errors[WHOLE], self._random_errors[FIRST], self._random_errors[SECOND])
         print()
         print("Stripped times:")
-        print(self._ms_stripped[WHOLE])
+        print(zip(self._step_nums_stripped[WHOLE], self._ms_stripped[WHOLE]))
         print(self._ms_stripped[FIRST]),
         print(self._ms_stripped[SECOND])
         print()
@@ -135,7 +158,10 @@ class CSData:
             else:
                 if time != 0:  # pressed
                     self._ms_stripped[WHOLE].append(time)
+                    self._step_nums_stripped[WHOLE].append(i)
                     self._ms_stripped[part].append(time)
+                    # todo save steps for halves - decide whether to count from 1 in second part
+                    # note that you dont need them for lin reg since its valuable only for whole
 
                 else:  # missed
                     self._omission_errors[WHOLE] += 1
@@ -144,23 +170,78 @@ class CSData:
 
     def _calculate_mean(self):
         for part in [WHOLE, FIRST, SECOND]:
-            self._mean[part] = sum(self._ms_stripped[part]) / len(self._ms_stripped[part])
+            if self._ms_stripped[part]:
+                self._mean[part] = sum(self._ms_stripped[part]) / len(self._ms_stripped[part])
+            else:
+                self._mean[part] = 0.0
 
     def _calculate_std_dev(self):
         square_deviations = [[], [], []]  # type: List[List[float]]
         variance = [0.0, 0.0, 0.0]  # type: List[float]
         for part in [WHOLE, FIRST, SECOND]:
-            square_deviations[part] = [(x - self._mean[part]) ** 2.0 for x in self._ms_stripped[part]]
-            variance[part] = sum(square_deviations[part]) / float(len(square_deviations[part]))
-            self._std_dev[part] = math.sqrt(variance[part])
+            if self._ms_stripped[part]:
+                square_deviations[part] = [(x - self._mean[part]) ** 2.0 for x in self._ms_stripped[part]]
+                variance[part] = sum(square_deviations[part]) / float(len(square_deviations[part]))
+                self._std_dev[part] = np.sqrt(variance[part])
+            else:
+                self._std_dev[part] = 0.0
 
     def _evaluate_fft(self):
         # TODO
         pass
 
+    # taken from https://www.geeksforgeeks.org/linear-regression-python-implementation/
+    def _do_linear_regression(self):
+        x = np.array(self._step_nums_stripped[WHOLE])
+        y = np.array(self._ms_stripped[WHOLE])
+
+        # number of observations/points
+        n = np.size(x)
+
+        # mean of x and y vector
+        m_x, m_y = np.mean(x), np.mean(y)
+
+        # calculating cross-deviation and deviation about x
+        ss_xy = np.sum(y * x) - n * m_y * m_x
+        ss_xx = np.sum(x * x) - n * m_x * m_x
+
+        # calculating regression coefficients
+        b_1 = ss_xy / ss_xx
+        b_0 = m_y - b_1 * m_x
+
+        self._regression_line = (b_0, b_1)
+
     # --- property-like interface for VIEW ---
+
+    def get_step_count(self):
+        return self._step_count
+
+    def get_name(self):
+        return self._name
+
+    def get_timestamp(self):
+        return self._timestamp
+
+    def get_ms(self):
+        return self._ms
+
+    def get_ms_stripped(self):
+        return self._ms_stripped
+
+    def get_step_nums_stripped(self):
+        return self._step_nums_stripped
 
     def get_mean(self):
         return self._mean
 
-    # TODO etc
+    def get_std_dev(self):
+        return self._std_dev
+
+    def get_comission_errors(self):
+        return self._comission_errors
+
+    def get_omission_errors(self):
+        return self._omission_errors
+
+    def get_total_errors(self):
+        return [x + y + z for x, y, z in zip(self._comission_errors, self._omission_errors, self._random_errors)]

@@ -10,10 +10,14 @@ from CSData import CSData
 from CSView import CSView
 from TkinterViewContent import TkinterViewContent
 from TVCIntro import TVCIntro
+from TVCReady import TVCReady
 from TVCNumber import TVCNumber
 from TVCImage import TVCImage
 from TVCOutro import TVCOutro
 from TVCResults import TVCResults
+from TVCInstructions import TVCInstructions
+from TVCTutorialResults import TVCTutorialResults
+from TVCUsernameInput import TVCUsernameInput
 
 """
 TkinterView (implementing CSView) is a class providing methods for viewing content to the user and getting input. 
@@ -24,9 +28,9 @@ and also redrawing whether new content is set via set_content method.
 """
 class TkinterView(CSView):
 
-    def __init__(self, cs_event_system, cs_data):
-        # type: (CSEventSystem, CSData) -> None
-        CSView.__init__(self, cs_event_system, cs_data)
+    def __init__(self, cs_event_system):
+        # type: (CSEventSystem) -> None
+        CSView.__init__(self, cs_event_system)
 
         # set up window and frame
         self._set_window()
@@ -35,18 +39,19 @@ class TkinterView(CSView):
         self._time_multiplier = 1
 
         # set up keyboard input
-        self._key_event_map = {}  # type: Dict[str, str]
+        self._key_event_map = {}
         self._key_event_map["<Return>"] = "action"
         self._key_event_map["<space>"] = "action"
         self._key_event_map["<Escape>"] = "back"
-        self._key_event_map["<BackSpace>"] = "back"
+        # self._key_event_map["<BackSpace>"] = "back"
         self._key_event_map["r"] = "action_alt"
-        self._key_event_map["f"] = "fullscreen"
+        self._key_event_map["f"] = "fullscreen"  # Tkinter view internal event (not controlled by presenter)
+
         self._char_key_map = {}
         self._char_key_map["\r"] = "<Return>"
         self._char_key_map[" "] = "<space>"
         self._char_key_map["\x1b"] = "<Escape>"
-        self._char_key_map["\b"] = "<BackSpace>"
+        # self._char_key_map["\b"] = "<BackSpace>"
         self._char_key_map["r"] = "r"
         self._char_key_map["f"] = "f"
         self._key_fids = []
@@ -55,6 +60,10 @@ class TkinterView(CSView):
         # view content cache -> faster changes in view (specifically because of image loading)
         self._vc_cache = {}  # type: Dict[Union[str, int], TkinterViewContent]
         self._vc_cache["intro"] = TVCIntro()
+        self._vc_cache["username_input"] = TVCUsernameInput()
+        self._vc_cache["instructions"] = TVCInstructions()
+        self._vc_cache["tutorial_results"] = TVCTutorialResults()
+        self._vc_cache["ready"] = TVCReady()
         self._vc_cache["mask"] = TVCImage("Images/mask.png")
         self._vc_cache["response"] = TVCImage("Images/response.png")
         self._vc_cache["fixation"] = TVCImage("Images/fixation.png")
@@ -67,7 +76,7 @@ class TkinterView(CSView):
     def _set_window(self):
         # init root window
         self._window = Tk.Tk()  # window reference should only be GET from other classes, never SET!
-        self._window.geometry("800x600")
+        self._window.geometry("1000x600")
         # self.window.eval('tk::PlaceWindow . center')  # place the windowed version to center of screen
         # self.window.attributes('-fullscreen', True)
         self._window.title("SART test")
@@ -118,6 +127,7 @@ class TkinterView(CSView):
     # '-> set new content
     # '-> clear frame
     # '-> bind new input control
+    # '-> pass specific data to be viewed
     def set_content(self, content_name, data=None):
         # type: (str, Any) -> None
         if content_name in self._vc_cache:
@@ -131,17 +141,21 @@ class TkinterView(CSView):
 
     # clears frame from any content
     # '-> destroy all widgets
-    # '-> TODO: clear all drawn elements too maybe?
-    # based on:
+    # '-> clear frame
+    # additional info:
     # https://stackoverflow.com/questions/15781802/python-tkinter-clearing-a-frame
     def clear_content(self):
         # destroy all widgets from frame
         for widget in self._frame.winfo_children():
             widget.destroy()
-        # this will clear frame and frame will be empty
-        # if you want to hide the empty panel then
+        # tclear frame and frame will be empty
         self._frame.pack_forget()
+        self._frame.grid_forget()
         self._content = None
+
+    def read_input(self):
+        # type: () -> Any
+        return self._content.read_input()
 
     # Sets a timer which raises a "timeout" event after a set period of time
     # Can be extended to cancelling functionality https://stackoverflow.com/questions/53756018/after-cancel-method-tkinter

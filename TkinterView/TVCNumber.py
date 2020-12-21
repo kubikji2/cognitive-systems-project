@@ -2,7 +2,6 @@
 
 import Tkinter as Tk
 from TkinterViewContent import TkinterViewContent
-import random as rnd
 
 
 """
@@ -17,9 +16,8 @@ class TVCNumber(TkinterViewContent):
         # Create widgets
 
         my_label = Tk.Label(parent, text=str(self.number))
-        # my_label.config(font=("Arial", rnd.randrange(26, 48)))
         my_label.config(font=("Arial",  48))
-        # Show widgets
+        # Place widgets
         my_label.pack()
 
     def set_data(self, data):

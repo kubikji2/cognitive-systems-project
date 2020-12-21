@@ -15,3 +15,8 @@ class TkinterViewContent:
     # specify data to view
     def set_data(self, data):
         print("TBD")
+
+    # abstract
+    # read text input from the user if the current viewcontent has any
+    def read_input(self):
+        print("TBD")

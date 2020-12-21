@@ -11,11 +11,11 @@ It is supposed to be implemented using Tkinter for pc and ??? for Pepper humanoi
 """
 class CSView:
 
-    def __init__(self, cs_event_system, cs_data):
-        # type: (CSEventSystem, CSData) -> None
+    def __init__(self, cs_event_system):
+        # type: (CSEventSystem) -> None
         # register event system for raising events in it
         self.cs_event_system = cs_event_system  # type: CSEventSystem
-        self.cs_data = cs_data  # type: CSData
+        # self.cs_data = cs_data  # type: CSData
 
     # public
     # Begin the window refresh and input loop
@@ -24,13 +24,20 @@ class CSView:
 
     # public
     # set to view a specified view content
-    def set_content(self, content_name, data=None):  # TODO remove the passing of data, not needed since reference to data was added
+    def set_content(self, content_name, data=None):
         # type: (str, Any) -> None
         print("TBD")
 
     # public
     # clears view
     def clear_content(self):
+        print("TBD")
+
+    # public
+    # specific views can have user to create a more compicated input (eg getting a whole word using text or speech)
+    # this method gets this complex info from what is currently viewed (should return None if nothing to be read)
+    def read_input(self):
+        # type: () -> Any
         print("TBD")
 
     # public

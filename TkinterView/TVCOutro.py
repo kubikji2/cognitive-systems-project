@@ -12,7 +12,7 @@ class TVCOutro(TkinterViewContent):
     def show(self, parent):
         # Create widgets
         my_label = Tk.Label(parent, text="Congratulations on finishing the test!")
-        my_label2 = Tk.Label(parent, text="Press space/enter to evaluate results")
+        my_label2 = Tk.Label(parent, text="Press space/enter to show results")
 
         # Show widgets
         my_label.pack()
