@@ -1,5 +1,3 @@
-#!/usr/bin/python2
-
 from CSView import CSView
 from CSEventSystem import CSEventSystem
 from CSData import CSData
