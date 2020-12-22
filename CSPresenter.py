@@ -5,7 +5,10 @@ from typing import Optional
 from CSView import CSView
 from CSEventSystem import CSEventSystem
 from CSData import CSData
+import CSDataSaver
 
+# for browsing files
+import glob
 
 """
 CSPresenter (Cognitive Systems Presenter) is a class
@@ -88,8 +91,17 @@ class CSPresenter:
             self._cs_view.set_content("tutorial_results")
 
     def _show_saved_results(self):
-        # todo? multiple instances of CSData
-        pass
+       
+        # load all cs_datas files
+        filenames = glob.glob("*"+CSDataSaver.CSData_FILE_SUFFIX)
+        print(filenames)
+        cs_datas = []
+        for filename in filenames:
+            cur_csd = CSData(filename=filename)
+            cs_datas.append(cur_csd)
+
+        # TODO what is next? pass to another view?
+
 
     # --- TEST SEQUENCE ---
     def _start_tutorial(self):

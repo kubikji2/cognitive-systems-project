@@ -123,7 +123,6 @@ class CSDataSaver:
             self.cs_data._name = data_lines[0].replace(CSData_END_LINE,"")
             # reading timestamp
             # conversion based on: https://stackabuse.com/converting-strings-to-datetime-in-python/
-            print(data_lines[1])
             self.cs_data._timestamp = datetime.datetime.strptime(data_lines[1].replace(CSData_END_LINE,""), '%Y-%m-%d %H:%M:%S.%f')
             # reading step count
             self.cs_data._step_count = self._load_int_array(data_lines[2])
