@@ -1,5 +1,3 @@
-#!/usr/bin/python2
-
 import Tkinter as Tk
 from typing import Optional, Callable
 from CSEventSystem import CSEventSystem

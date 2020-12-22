@@ -1,5 +1,3 @@
-#!/usr/bin/python2
-
 """
 A class for storing and processing test data
 """

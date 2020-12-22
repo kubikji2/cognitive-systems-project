@@ -1,5 +1,3 @@
-#!/usr/bin/python2
-
 import random as rnd
 from typing import Optional
 

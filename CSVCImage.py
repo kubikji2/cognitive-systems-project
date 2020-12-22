@@ -1,7 +1,6 @@
-#!/usr/bin/python2
-
 import Tkinter as Tk
-from PIL import ImageTk, Image
+from PIL import ImageTk
+from PIL import Image
 from CSViewContent import CSViewContent
 
 """

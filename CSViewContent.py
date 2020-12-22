@@ -1,5 +1,3 @@
-#!/usr/bin/python2
-
 import Tkinter as Tk
 from typing import List, Optional
 #from CSView import CSView

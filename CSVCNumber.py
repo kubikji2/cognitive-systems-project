@@ -1,5 +1,3 @@
-#!/usr/bin/python2
-
 import Tkinter as Tk
 from CSViewContent import CSViewContent
 import random as rnd

@@ -1,5 +1,3 @@
-#!/usr/bin/python2
-
 from typing import Optional, Dict, List, Callable
 
 """
