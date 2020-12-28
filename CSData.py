@@ -66,11 +66,7 @@ class CSData:
             self._comission_errors = [0, 0, 0]  # presses on target trials
             self._omission_errors = [0, 0, 0]  # missed presses on non-target trials
             self._random_errors = [0, 0, 0]  # presses out of regular time window or multiple presses per step
-            
-            self.save_to_file()
-            csd = CSDataSaver.CSDataSaver(self)
-            filename = csd._construct_filename()
-            self.load_from_file(filename)
+
         elif filename is not None:
             self.load_from_file(filename)
             
@@ -132,6 +128,7 @@ class CSData:
     def load_from_file(self, filename):
         csd = CSDataSaver.CSDataSaver(self)
         csd.load_data(filename)
+        print("[CSData] data loaded from file")
 
     # --- private methods ---
 

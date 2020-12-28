@@ -3,7 +3,7 @@
 import Tkinter as Tk
 from TkinterViewContent import TkinterViewContent
 from CSData import *
-from typing import Optional
+from typing import Optional, Union
 
 import matplotlib
 matplotlib.use("TkAgg")  # setting matplotlib to use the 'Tkinter Anti-grain renderer' backend
@@ -17,19 +17,32 @@ class TVCResults(TkinterViewContent):
 
     def __init__(self):
         self._cs_data = None  # type: Optional[CSData]
+        self._halved = None  # type: Optional[bool]
+        self._index = None  # type: Optional[int]
+        self._max_index = None  # type: Optional[int]
 
     def show(self, parent):
         if self._cs_data is None:
-            err = Tk.Label(parent, text="No data to display, please contact a technician")
+            err = Tk.Label(parent, text="No data set to be displayed, contact a technician")
             err.pack()
             return
 
-        # Create widgets
-        # TOP
-        lbl_header = Tk.Label(parent, text="Overall results", font=("Arial", 24))
+        if self._halved:
+            lbl_debug = Tk.Label(parent, text="Halved")
+            lbl_debug.pack()
+
+        # --- Create widgets ---
+        if self._index is None or self._max_index is None:
+            # TOP
+            lbl_header = Tk.Label(parent, text="Overall result", font=("Arial", 24))
+            lbl_controls2 = Tk.Label(parent, text="Press R to go back to intro")
+            lbl_controls3 = Tk.Label(parent, text="Press Esc to exit")
+        else:
+            lbl_header = Tk.Label(parent, text="Result {} of {}".format(self._index, self._max_index), font=("Arial", 16))
+            lbl_controls2 = Tk.Label(parent, text="Press Esc to go back to intro")
+            lbl_controls3 = Tk.Label(parent, text="")
         lbl_sub_header = Tk.Label(parent, text=(self._cs_data.get_name() + " " + str(self._cs_data.get_timestamp().strftime("%Y-%m-%d %H:%M:%S"))), font=("Arial", 14))
 
-        lbl_saved = Tk.Label(parent, text="Your results were saved on disk, here you can view them")
 
         # MIDDLE
         frm_results = Tk.Frame(parent)
@@ -62,13 +75,11 @@ class TVCResults(TkinterViewContent):
 
         # BOTTOM
         lbl_controls = Tk.Label(parent, text="Press Enter or space to switch to half-by-half comparison", font=("Arial", 16))
-        lbl_controls2 = Tk.Label(parent, text="Press R to go back to intro")
-        lbl_controls3 = Tk.Label(parent, text="Press Esc to exit")
+
 
         # Show widgets
         lbl_header.pack()
         lbl_sub_header.pack(pady=(0, 5))
-        lbl_saved.pack(pady=(0, 5))
 
         frm_results.pack()
         frm_left.pack(side=Tk.LEFT)
@@ -89,8 +100,12 @@ class TVCResults(TkinterViewContent):
         lbl_controls3.pack()
 
     def set_data(self, data):
-        # type: (CSData) -> None
-        self._cs_data = data
+        # type: (Tuple[CSData, bool, Optional[int], Optional[int]]) -> None
+        self._cs_data = data[0]
+        self._halved = data[1]
+        self._index = data[2]
+        self._max_index = data[3]
+
 
 
 # # todo debug temporary

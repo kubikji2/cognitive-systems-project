@@ -42,18 +42,22 @@ class TkinterView(CSView):
         self._key_event_map = {}
         self._key_event_map["<Return>"] = "action"
         self._key_event_map["<space>"] = "action"
+        self._key_event_map["r"] = "action_alt"
         self._key_event_map["<Escape>"] = "back"
         # self._key_event_map["<BackSpace>"] = "back"
-        self._key_event_map["r"] = "action_alt"
+        self._key_event_map["<Left>"] = "left"
+        self._key_event_map["<Right>"] = "right"
         self._key_event_map["f"] = "fullscreen"  # Tkinter view internal event (not controlled by presenter)
 
-        self._char_key_map = {}
-        self._char_key_map["\r"] = "<Return>"
-        self._char_key_map[" "] = "<space>"
-        self._char_key_map["\x1b"] = "<Escape>"
-        # self._char_key_map["\b"] = "<BackSpace>"
-        self._char_key_map["r"] = "r"
-        self._char_key_map["f"] = "f"
+        self._keycode_key_map = {}
+        self._keycode_key_map[13] = "<Return>"
+        self._keycode_key_map[32] = "<space>"
+        self._keycode_key_map[27] = "<Escape>"
+        # self._char_key_map[8] = "<BackSpace>"
+        self._keycode_key_map[37] = "<Left>"
+        self._keycode_key_map[39] = "<Right>"
+        self._keycode_key_map[82] = "r"
+        self._keycode_key_map[70] = "f"
         self._key_fids = []
         self._bind_keyboard_input()
 
@@ -87,7 +91,6 @@ class TkinterView(CSView):
         self._frame = Tk.Frame(self._window)
         self._frame.place(relx=.5, rely=.5, anchor="center")
 
-
     # map keyboard and mouse input to events
     # key binding reference https://stackoverflow.com/questions/6433369/deleting-and-changing-a-tkinter-event-binding
     def _bind_keyboard_input(self):
@@ -105,7 +108,11 @@ class TkinterView(CSView):
 
     # a function to be called by Tkinter when specified keys are pressed
     def _key_callback(self, keyboard_event):
-        key = self._char_key_map[keyboard_event.char]
+        if keyboard_event.keycode not in self._keycode_key_map:
+            print("[CSTkinterView] key " + repr(keyboard_event.keycode) + " not mapped")
+            return
+
+        key = self._keycode_key_map[keyboard_event.keycode]
         event = self._key_event_map[key]
         # print("key: " + repr(key))
         if event == "fullscreen":

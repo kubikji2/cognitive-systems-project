@@ -1,6 +1,6 @@
 import random as rnd
 import time
-from typing import Optional
+from typing import Optional, List
 
 from CSView import CSView
 from CSEventSystem import CSEventSystem
@@ -31,9 +31,12 @@ class CSPresenter:
         self._tutorial_step_count = 9  # type: int
 
         # state holders
-        self._current_cs_data = None  # type: Optional[CSData]
+        self._current_cs_data = None  # type: Optional[CSData]  # the CSData object for storing reactions during the test and viewing results after the test
+        self._loaded_cs_data = []  # type: List[CSData]  # all CSData objects loaded from files for browsing results
+        self._csd_index = -1  # type: int  # index of currently shown CSData object while browsing results
+        self._is_result_halved = False  # type: bool  # used to indicate whether result is shown overally for the whole test or as a comparison of the two halves of the test
         self._username = ""  # type: str
-        self._tutorial_test = True  # type: bool
+        self._is_tutorial = True  # type: bool
         self._current_step = 0  # type: int
         self._current_number = 0  # type: int
         self._stopwatch_start_time = 0  # type: float  # used as a store for measuring time of user input
@@ -50,6 +53,7 @@ class CSPresenter:
 
     def _show_intro(self):
         self._current_cs_data = None  # just in case
+        self._csd_index = -1
         self._cs_event_system.remove_all_callbacks()
         self._cs_event_system.add_onetime_callback("action", self._show_username_input)
         self._cs_event_system.add_onetime_callback("action_alt", self._show_saved_results)
@@ -91,22 +95,52 @@ class CSPresenter:
             self._cs_view.set_content("tutorial_results")
 
     def _show_saved_results(self):
-       
-        # load all cs_datas files
-        filenames = glob.glob("*"+CSDataSaver.CSData_FILE_SUFFIX)
-        print(filenames)
-        cs_datas = []
+        self._cs_event_system.remove_all_callbacks()
+        # load all cs_data files
+        filenames = glob.glob("Results/*" + CSDataSaver.CSData_FILE_SUFFIX)  # todo move this to csdatasaver (it could be better if it was static)
+        print("[CSPresenter] files found: " + str(filenames))
+        self._loaded_cs_data = []
         for filename in filenames:
-            cur_csd = CSData(filename=filename)
-            cs_datas.append(cur_csd)
+            cs_data = CSData(filename=filename)
+            self._loaded_cs_data.append(cs_data)
+        if not self._loaded_cs_data:
+            print("[CSPresenter] No results to display")
+            self._cs_event_system.add_onetime_callback("action_alt", self._show_saved_results)
+            self._cs_event_system.add_onetime_callback("back", self._show_intro)
+            self._cs_view.set_content("results", None)
+        else:
+            self._csd_index = 0
+            self._current_cs_data = self._loaded_cs_data[self._csd_index]
+            self._is_result_halved = False
+            self._cs_event_system.add_onetime_callback("back", self._show_intro)
+            self._cs_event_system.add_callback("action", self._switch_halved)
+            self._cs_event_system.add_callback("left", self._previous_result)
+            self._cs_event_system.add_callback("right", self._next_result)
+            self._show_result()
 
-        # TODO what is next? pass to another view?
+    def _switch_halved(self):
+        self._is_result_halved = not self._is_result_halved
+        self._show_result()
 
+    def _next_result(self):
+        self._csd_index += 1
+        if self._csd_index == len(self._loaded_cs_data):
+            self._csd_index = 0
+        self._show_result()
+
+    def _previous_result(self):
+        self._csd_index -= 1
+        if self._csd_index == -1:
+            self._csd_index = len(self._loaded_cs_data) - 1
+        self._show_result()
+
+    def _show_result(self):
+        self._cs_view.set_content("results", (self._loaded_cs_data[self._csd_index], self._is_result_halved, self._csd_index + 1, len(self._loaded_cs_data)))
 
     # --- TEST SEQUENCE ---
     def _start_tutorial(self):
         self._cs_event_system.remove_all_callbacks()
-        self._tutorial_test = True
+        self._is_tutorial = True
         self._current_step = 0
         self._current_number = 1
         self._current_cs_data = CSData(step_count=self._tutorial_step_count, name=self._username)
@@ -114,7 +148,7 @@ class CSPresenter:
 
     def _start_test(self):
         self._cs_event_system.remove_all_callbacks()
-        self._tutorial_test = False
+        self._is_tutorial = False
         self._current_step = 0
         self._current_number = 1
         self._current_cs_data = CSData(step_count=self._step_count, name=self._username)
@@ -155,7 +189,7 @@ class CSPresenter:
     def _decide_test_end(self):
         # todo if action was not taken in this step, also write it down into data
         self._current_step += 1
-        if self._tutorial_test and self._current_step == self._tutorial_step_count:
+        if self._is_tutorial and self._current_step == self._tutorial_step_count:
             self._show_tutorial_results()
         elif self._current_step == self._step_count:
             self._show_outro()
@@ -178,20 +212,28 @@ class CSPresenter:
 
     # --- OUTRO ---
     def _show_outro(self):
+        self._cs_event_system.remove_all_callbacks()
         self._current_cs_data.print_reactions()  # debug
         self._current_cs_data.evaluate_results()
         self._current_cs_data.print_results()  # debug
         self._current_cs_data.save_to_file()
-        self._cs_event_system.remove_all_callbacks()
-        self._cs_event_system.add_onetime_callback("action", self._show_results)
+        self._cs_event_system.add_onetime_callback("action", self._show_test_result)
         self._cs_event_system.add_onetime_callback("action_alt", self._show_intro)
         self._cs_event_system.add_onetime_callback("back", self._cs_view.close)
         self._cs_view.set_content("outro")
 
-    def _show_results(self):
+    def _show_test_result(self):
+        self._cs_event_system.remove_all_callbacks()
+        self._is_result_halved = False
+        self._cs_event_system.add_callback("action", self._switch_test_result_halved)
         self._cs_event_system.add_onetime_callback("action_alt", self._show_intro)
         self._cs_event_system.add_onetime_callback("back", self._cs_view.close)
-        self._cs_view.set_content("results", self._current_cs_data)
+        self._cs_view.set_content("results", (self._current_cs_data, self._is_result_halved, None, None))
+
+    def _switch_test_result_halved(self):
+        self._is_result_halved = not self._is_result_halved
+        self._cs_view.set_content("results", (self._current_cs_data, self._is_result_halved, None, None))
+
 
     # || Helper functions ||
 

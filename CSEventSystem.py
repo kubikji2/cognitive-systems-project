@@ -5,6 +5,8 @@ Current list of commands (event names) for CSPresenter:
 - "action"
 - "action_alt"
 - "back"
+- "right"
+- "left"
 """
 
 
