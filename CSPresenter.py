@@ -107,7 +107,7 @@ class CSPresenter:
             print("[CSPresenter] No results to display")
             self._cs_event_system.add_onetime_callback("action_alt", self._show_saved_results)
             self._cs_event_system.add_onetime_callback("back", self._show_intro)
-            self._cs_view.set_content("results", None)
+            self._cs_view.set_content("results", (None, None, None, None))
         else:
             self._csd_index = 0
             self._current_cs_data = self._loaded_cs_data[self._csd_index]

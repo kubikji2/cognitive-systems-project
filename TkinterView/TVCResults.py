@@ -22,21 +22,28 @@ class TVCResults(TkinterViewContent):
         self._max_index = None  # type: Optional[int]
 
     def show(self, parent):
+        # BROWSING PREVIOUSLY SAVED RESULTS BUT NONE FOUND
         if self._cs_data is None:
-            err = Tk.Label(parent, text="No data set to be displayed, contact a technician")
+            err = Tk.Label(parent, text="No saved results found")
+            err1 = Tk.Label(parent, text="Press R to try again")
+            err2 = Tk.Label(parent, text="Press Esc to go back")
             err.pack()
+            err1.pack()
+            err2.pack()
             return
 
+        # todo implement screen with halves
         if self._halved:
             lbl_debug = Tk.Label(parent, text="Halved")
             lbl_debug.pack()
 
-        # --- Create widgets ---
+        # SHOWING RESULT OF THE CURRENT TEST
         if self._index is None or self._max_index is None:
             # TOP
             lbl_header = Tk.Label(parent, text="Overall result", font=("Arial", 24))
             lbl_controls2 = Tk.Label(parent, text="Press R to go back to intro")
             lbl_controls3 = Tk.Label(parent, text="Press Esc to exit")
+        # BROWSING PREVIOUSLY SAVED RESULTS
         else:
             lbl_header = Tk.Label(parent, text="Result {} of {}".format(self._index, self._max_index), font=("Arial", 16))
             lbl_controls2 = Tk.Label(parent, text="Press Esc to go back to intro")
@@ -44,12 +51,12 @@ class TVCResults(TkinterViewContent):
         lbl_sub_header = Tk.Label(parent, text=(self._cs_data.get_name() + " " + str(self._cs_data.get_timestamp().strftime("%Y-%m-%d %H:%M:%S"))), font=("Arial", 14))
 
 
-        # MIDDLE
+        # middle
         frm_results = Tk.Frame(parent)
         frm_left = Tk.Frame(frm_results)
         frm_right = Tk.Frame(frm_results)
 
-        #    LEFT
+        #    left
         lbl_count = Tk.Label(frm_left, text="Total trials: {}".format(self._cs_data.get_step_count()[WHOLE]), font=("Arial", 16))
         lbl_mean = Tk.Label(frm_left, text="Mean RT (respnonse time): {:.0f} ms".format(self._cs_data.get_mean()[WHOLE]), font=("Arial", 16))
         lbl_std_dev = Tk.Label(frm_left, text="Standart deviation of RT: {:.0f} ms".format(self._cs_data.get_std_dev()[WHOLE]), font=("Arial", 16))
@@ -57,7 +64,7 @@ class TVCResults(TkinterViewContent):
         lbl_omi_err = Tk.Label(frm_left, text="Omission errors (missed presses): {}".format(self._cs_data.get_omission_errors()[WHOLE]), font=("Arial", 16))
         lbl_rnd_err = Tk.Label(frm_left, text="Other errors (multiple/early/late presses): {}".format(self._cs_data.get_comission_errors()[WHOLE]), font=("Arial", 16))
 
-        #    RIGHT
+        #    right
         fig_rt = plot.Figure(figsize=(4, 3), dpi=100)  # create a canvas to draw
         axes_rt = fig_rt.add_subplot(111)  # create an axes object
         axes_rt.set_title('Response times')
@@ -73,7 +80,7 @@ class TVCResults(TkinterViewContent):
         tlbr_rt.update()
 
 
-        # BOTTOM
+        # bottom
         lbl_controls = Tk.Label(parent, text="Press Enter or space to switch to half-by-half comparison", font=("Arial", 16))
 
 
@@ -100,7 +107,7 @@ class TVCResults(TkinterViewContent):
         lbl_controls3.pack()
 
     def set_data(self, data):
-        # type: (Tuple[CSData, bool, Optional[int], Optional[int]]) -> None
+        # type: (Tuple[Optional[CSData], Optional[bool], Optional[int], Optional[int]]) -> None
         self._cs_data = data[0]
         self._halved = data[1]
         self._index = data[2]
