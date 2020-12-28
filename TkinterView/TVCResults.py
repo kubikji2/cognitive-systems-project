@@ -46,8 +46,9 @@ class TVCResults(TkinterViewContent):
         # BROWSING PREVIOUSLY SAVED RESULTS
         else:
             lbl_header = Tk.Label(parent, text="Result {} of {}".format(self._index, self._max_index), font=("Arial", 16))
-            lbl_controls2 = Tk.Label(parent, text="Press Esc to go back to intro")
-            lbl_controls3 = Tk.Label(parent, text="")
+            lbl_controls2 = Tk.Label(parent, text="Press Left / Right to browse results")
+            lbl_controls3 = Tk.Label(parent, text="Press Esc to go back to intro")
+
         lbl_sub_header = Tk.Label(parent, text=(self._cs_data.get_name() + " " + str(self._cs_data.get_timestamp().strftime("%Y-%m-%d %H:%M:%S"))), font=("Arial", 14))
 
 
