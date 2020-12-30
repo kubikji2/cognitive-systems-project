@@ -69,6 +69,9 @@ class CSDataSaver:
             self._add_comment("ms interpolated")
             self._save_array_of_arrays(self._cs_data._ms_interpolated)
 
+            self._add_comment("mean by digit")
+            self._save_array_of_arrays(self._cs_data._mean_by_digit)
+
             self._add_comment("mean")
             self._save_array(self._cs_data._mean)
 
@@ -134,11 +137,12 @@ class CSDataSaver:
             self._cs_data._ms_stripped = self._load_array_of_array(data_lines[7:10])
             self._cs_data._step_nums_stripped = self._load_array_of_array(data_lines[10:13])
             self._cs_data._ms_interpolated = self._load_array_of_array(data_lines[13:16])
+            self._cs_data._mean_by_digit = self._load_array_of_array(data_lines[16:19])
 
             # statistics
-            self._cs_data._mean = self._load_float_array(data_lines[16])
-            self._cs_data._std_dev = self._load_float_array(data_lines[17])
-            self._cs_data._regression_line = self._load_float_array(data_lines[18])
-            self._cs_data._comission_errors = self._load_float_array(data_lines[19])
-            self._cs_data._omission_errors = self._load_float_array(data_lines[20])
-            self._cs_data._random_errors = self._load_float_array(data_lines[21])
+            self._cs_data._mean = self._load_float_array(data_lines[19])
+            self._cs_data._std_dev = self._load_float_array(data_lines[20])
+            self._cs_data._regression_line = self._load_float_array(data_lines[21])
+            self._cs_data._comission_errors = self._load_float_array(data_lines[22])
+            self._cs_data._omission_errors = self._load_float_array(data_lines[23])
+            self._cs_data._random_errors = self._load_float_array(data_lines[24])

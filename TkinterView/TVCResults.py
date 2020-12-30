@@ -32,10 +32,13 @@ class TVCResults(TkinterViewContent):
             err2.pack()
             return
 
-        # todo implement screen with halves
-        if self._halved:
-            lbl_debug = Tk.Label(parent, text="Halved")
-            lbl_debug.pack()
+        # OVERALL RESULT
+        if not self._halved:
+            lbl_header = Tk.Label(parent, text="Overall")
+            lbl_header.pack()
+
+        # else:
+
 
         # SHOWING RESULT OF THE CURRENT TEST
         if self._index is None or self._max_index is None:

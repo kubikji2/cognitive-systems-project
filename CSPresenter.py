@@ -135,6 +135,7 @@ class CSPresenter:
         self._show_result()
 
     def _show_result(self):
+        self._loaded_cs_data[self._csd_index].print_results()  # debug
         self._cs_view.set_content("results", (self._loaded_cs_data[self._csd_index], self._is_result_halved, self._csd_index + 1, len(self._loaded_cs_data)))
 
     # --- TEST SEQUENCE ---
@@ -166,24 +167,24 @@ class CSPresenter:
     # -- in a loop --
     def _show_number(self):
         self._reset_stopwatch()
-        self._cs_view.set_content("number", self._current_number)
         self._cs_view.set_timer(313, self._show_mask)
+        self._cs_view.set_content("number", self._current_number)
 
     def _show_mask(self):
-        self._cs_view.set_content("mask")
         self._cs_view.set_timer(125, self._show_response_cue)
+        self._cs_view.set_content("mask")
 
     def _show_response_cue(self):
-        self._cs_view.set_content("response")
         self._cs_view.set_timer(63, self._show_after_mask)
+        self._cs_view.set_content("response")
 
     def _show_after_mask(self):
-        self._cs_view.set_content("mask")
         self._cs_view.set_timer(375, self._show_fixation)
+        self._cs_view.set_content("mask")
 
     def _show_fixation(self):
-        self._cs_view.set_content("fixation")
         self._cs_view.set_timer(563, self._decide_test_end)
+        self._cs_view.set_content("fixation")
 
     # decide whether to continue looping or show result screen
     def _decide_test_end(self):

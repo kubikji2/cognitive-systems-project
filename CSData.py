@@ -1,5 +1,6 @@
 from typing import List, Tuple
 import numpy as np
+from scipy import fftpack
 import datetime
 
 # saves CSData to keep this file clean
@@ -8,6 +9,9 @@ import CSDataSaver
 WHOLE = 0
 FIRST = 1
 SECOND = 2
+PARTS = [WHOLE, FIRST, SECOND]
+
+DIGITS_EXCEPT_3 = [4, 5, 6, 7, 8, 9, 1, 2]
 
 """
 A class for storing and processing test data
@@ -28,7 +32,7 @@ class CSData:
     _ms_stripped = None  # type: List[List[float]]
     _step_nums_stripped = None  # type: List[List[int]]
     _ms_interpolated = None  # type: List[List[float]]
-    _ms_by_number = None  # type: List[List[float]]
+    _mean_by_digit = None  # type: List[List[float]]
     _mean = None  # type: List[float]
     _std_dev = None  # type: List[float]
     _regression_line = None  # type: Tuple[float, float]
@@ -60,6 +64,7 @@ class CSData:
             self._ms_stripped = [[], [], []]  # only correct presses for means and slope
             self._step_nums_stripped = [[], [], []]  # specifies the step numbers of the corresponding stripped times
             self._ms_interpolated = [[], [], []]  # for FFT analysis
+            self._mean_by_digit = [[], [], []]  # means for digits 4, 5, 6, 7, 8, 9, 1, 2
             self._mean = [0.0, 0.0, 0.0]
             self._std_dev = [0.0, 0.0, 0.0]
             self._regression_line = (0.0, 0.0)  # [0] is the y offset, [1] is the slope
@@ -94,7 +99,7 @@ class CSData:
 
     # command to calculate additional information from the currently collected times
     def evaluate_results(self):
-        self._prepare_data()
+        self._prepare_data_and_mean_by_digit()
         self._calculate_mean()
         self._calculate_std_dev()
         self._do_linear_regression()
@@ -113,8 +118,13 @@ class CSData:
         print()
         print("Stripped times:")
         print(zip(self._step_nums_stripped[WHOLE], self._ms_stripped[WHOLE]))
-        print(self._ms_stripped[FIRST]),
-        print(self._ms_stripped[SECOND])
+        print(zip(self._step_nums_stripped[FIRST], self._ms_stripped[FIRST])),
+        print(zip(self._step_nums_stripped[FIRST], self._ms_stripped[SECOND]))
+        print()
+        print("Means by digits: ")
+        print(zip(DIGITS_EXCEPT_3, self._mean_by_digit[WHOLE]))
+        print(zip(DIGITS_EXCEPT_3, self._mean_by_digit[FIRST])),
+        print(zip(DIGITS_EXCEPT_3, self._mean_by_digit[SECOND]))
         print()
         print("Means:", self._mean[WHOLE], self._mean[FIRST], self._mean[SECOND])
         print("Std devs:", self._std_dev[WHOLE], self._std_dev[FIRST], self._std_dev[SECOND])
@@ -132,17 +142,20 @@ class CSData:
 
     # --- private methods ---
 
-    def _prepare_data(self):
+    def _prepare_data_and_mean_by_digit(self):
         # convert seconds to ms
         self._ms[WHOLE] = [1000.0 * x for x in self._seconds]
         # divide in two halves
         self._ms[FIRST] = self._ms[WHOLE][:self._step_count[FIRST]]
         self._ms[SECOND] = self._ms[WHOLE][self._step_count[FIRST]:]
+        # prepare list for means by digits
+        self._mean_by_digit = [[0.0 for digit in range(len(DIGITS_EXCEPT_3))] for part in PARTS]
+        step_count_per_digit = [[0 for digit in range(len(DIGITS_EXCEPT_3))] for part in PARTS]  # type: List[List[int]]
 
-        # create stripped and [todo interpolated lists] with prettier data
-        for i in range(0, self._step_count[WHOLE]):
-            time = self._ms[WHOLE][i]
-            part = FIRST if (i < self._step_count[FIRST]) else SECOND
+        # fill in various lists for data evaluation todo interpolated lists
+        for step in range(0, self._step_count[WHOLE]):
+            time = self._ms[WHOLE][step]
+            part = FIRST if (step < self._step_count[FIRST]) else SECOND
 
             # catch times too early/late after number was shown
             if 0.0 < time < 150.0 or 1439.0 < time:
@@ -151,7 +164,7 @@ class CSData:
                 continue
 
             # on digit 3
-            if i % 9 == 2:
+            if self._digit_from_step(step) == 3:
                 if time != 0:  # pressed
                     self._comission_errors[WHOLE] += 1
                     self._comission_errors[part] += 1
@@ -164,18 +177,33 @@ class CSData:
             else:
                 if time != 0:  # pressed
                     self._ms_stripped[WHOLE].append(time)
-                    self._step_nums_stripped[WHOLE].append(i)
                     self._ms_stripped[part].append(time)
-                    # todo save steps for halves - decide whether to count from 1 in second part
-                    # note that you dont need them for lin reg since its valuable only for whole
+                    self._step_nums_stripped[WHOLE].append(step)
+                    self._step_nums_stripped[part].append(step)
+                    index_of_digit = self._index_from_digit(self._digit_from_step(step))
+                    self._mean_by_digit[WHOLE][index_of_digit] += time
+                    self._mean_by_digit[part][index_of_digit] += time
+                    step_count_per_digit[WHOLE][index_of_digit] += 1
+                    step_count_per_digit[part][index_of_digit] += 1
 
                 else:  # missed
                     self._omission_errors[WHOLE] += 1
                     self._omission_errors[part] += 1
 
+        # finish calculating mean by digit
+        for part in PARTS:
+            for index_of_digit in range(len(DIGITS_EXCEPT_3)):
+                if step_count_per_digit[part][index_of_digit] != 0:
+                    self._mean_by_digit[part][index_of_digit] /= float(step_count_per_digit[part][index_of_digit])
+
+    def _digit_from_step(self, step_num):
+        return (step_num % 9) + 1
+
+    def _index_from_digit(self, digit):
+        return DIGITS_EXCEPT_3.index(digit)
 
     def _calculate_mean(self):
-        for part in [WHOLE, FIRST, SECOND]:
+        for part in PARTS:
             if self._ms_stripped[part]:
                 self._mean[part] = sum(self._ms_stripped[part]) / len(self._ms_stripped[part])
             else:
@@ -184,7 +212,7 @@ class CSData:
     def _calculate_std_dev(self):
         square_deviations = [[], [], []]  # type: List[List[float]]
         variance = [0.0, 0.0, 0.0]  # type: List[float]
-        for part in [WHOLE, FIRST, SECOND]:
+        for part in PARTS:
             if self._ms_stripped[part]:
                 square_deviations[part] = [(x - self._mean[part]) ** 2.0 for x in self._ms_stripped[part]]
                 variance[part] = sum(square_deviations[part]) / float(len(square_deviations[part]))
