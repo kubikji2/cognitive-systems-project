@@ -15,8 +15,12 @@ class CSDataSaver:
         self._file = None
 
     def _save_array(self, arr):
-        for entry in arr:
-            self._file.write(str(entry) + CSData_SEPARATOR)
+        for i in range(len(arr)):
+            entry = arr[i]
+            if i == len(arr) - 1:
+                self._file.write(str(entry))
+            else:
+                self._file.write(str(entry) + CSData_SEPARATOR)
         self._file.write(CSData_END_LINE)
 
     def _save_array_of_arrays(self, arr_o_arr):
@@ -93,16 +97,24 @@ class CSDataSaver:
     def _load_int_array(self, string):
         items = string.split(CSData_SEPARATOR)
         arr = []
-        for i in range(len(items)-1):
-            arr.append(int(items[i]))
+        for item in items:
+            try:
+                value = int(item)
+                arr.append(value)
+            except ValueError:
+                print("[CSDataSaver] cannot convert string '" + item + "' to int")
         return arr
 
     # sorry for code repetition
     def _load_float_array(self, string):
         items = string.split(CSData_SEPARATOR)
         arr = []
-        for i in range(len(items)-1):
-            arr.append(float(items[i]))
+        for item in items:
+            try:
+                value = float(item)
+                arr.append(value)
+            except ValueError:
+                print("[CSDataSaver] cannot convert string '" + item + "' to float")
         return arr
 
     def _load_array_of_array(self, list_of_strings):

@@ -52,7 +52,7 @@ class TVCResults(TkinterViewContent):
             lbl_controls2 = Tk.Label(parent, text="Press Left / Right to browse results")
             lbl_controls3 = Tk.Label(parent, text="Press Esc to go back to intro")
 
-        lbl_sub_header = Tk.Label(parent, text=(self._cs_data.get_name() + " " + str(self._cs_data.get_timestamp().strftime("%Y-%m-%d %H:%M:%S"))), font=("Arial", 14))
+        lbl_sub_header = Tk.Label(parent, text=(self._cs_data.name + " " + str(self._cs_data.timestamp.strftime("%Y-%m-%d %H:%M:%S"))), font=("Arial", 14))
 
 
         # middle
@@ -61,19 +61,19 @@ class TVCResults(TkinterViewContent):
         frm_right = Tk.Frame(frm_results)
 
         #    left
-        lbl_count = Tk.Label(frm_left, text="Total trials: {}".format(self._cs_data.get_step_count()[WHOLE]), font=("Arial", 16))
-        lbl_mean = Tk.Label(frm_left, text="Mean RT (respnonse time): {:.0f} ms".format(self._cs_data.get_mean()[WHOLE]), font=("Arial", 16))
-        lbl_std_dev = Tk.Label(frm_left, text="Standart deviation of RT: {:.0f} ms".format(self._cs_data.get_std_dev()[WHOLE]), font=("Arial", 16))
-        lbl_com_err = Tk.Label(frm_left, text="Comission errors (presses on '3'): {}".format(self._cs_data.get_comission_errors()[WHOLE]), font=("Arial", 16))
-        lbl_omi_err = Tk.Label(frm_left, text="Omission errors (missed presses): {}".format(self._cs_data.get_omission_errors()[WHOLE]), font=("Arial", 16))
-        lbl_rnd_err = Tk.Label(frm_left, text="Other errors (multiple/early/late presses): {}".format(self._cs_data.get_comission_errors()[WHOLE]), font=("Arial", 16))
+        lbl_count = Tk.Label(frm_left, text="Total trials: {}".format(self._cs_data.step_count[WHOLE]), font=("Arial", 16))
+        lbl_mean = Tk.Label(frm_left, text="Mean RT (respnonse time): {:.0f} ms".format(self._cs_data.mean[WHOLE]), font=("Arial", 16))
+        lbl_std_dev = Tk.Label(frm_left, text="Standart deviation of RT: {:.0f} ms".format(self._cs_data.std_dev[WHOLE]), font=("Arial", 16))
+        lbl_com_err = Tk.Label(frm_left, text="Comission errors (presses on '3'): {}".format(self._cs_data.comission_errors[WHOLE]), font=("Arial", 16))
+        lbl_omi_err = Tk.Label(frm_left, text="Omission errors (missed presses): {}".format(self._cs_data.omission_errors[WHOLE]), font=("Arial", 16))
+        lbl_rnd_err = Tk.Label(frm_left, text="Other errors (multiple/early/late presses): {}".format(self._cs_data.other_errors[WHOLE]), font=("Arial", 16))
 
         #    right
         fig_rt = plot.Figure(figsize=(4, 3), dpi=100)  # create a canvas to draw
         axes_rt = fig_rt.add_subplot(111)  # create an axes object
         axes_rt.set_title('Response times')
-        x_rt = self._cs_data.get_step_nums_stripped()[WHOLE]
-        y_rt = self._cs_data.get_ms_stripped()[WHOLE]
+        x_rt = self._cs_data.step_nums_stripped[WHOLE]
+        y_rt = self._cs_data.ms_stripped[WHOLE]
         axes_rt.bar(x_rt, y_rt)
         # axes_rt.plot(x_rt, y_rt)  # , kind='bar', legend=True from pyplot
 

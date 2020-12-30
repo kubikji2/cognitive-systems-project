@@ -32,4 +32,4 @@ class TVCTutorialResults(TkinterViewContent):
     def set_data(self, data):
         # type: (CSData) -> None
         self._total_errors = data.get_total_errors()[WHOLE]
-        self._steps = data.get_step_count()[WHOLE]
+        self._steps = data.step_count[WHOLE]

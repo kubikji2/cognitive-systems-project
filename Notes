@@ -6,3 +6,38 @@ Milestones:
 
 Tkinter 5 hour tutorial
 https://www.youtube.com/watch?v=YXPyB4XeYLA&t=4821s
+
+
+Pokus o vlastni linearni interpolaci napr z [0, 0, 4, 5, 0, 9, 0, 0, 6, 0, 0, 0] na [4, 4, 4, 5, 7, 9, 8, 7, 6, 6, 6, 6]
+        # initialize the whole list to values in ms
+        self._ms_interpolated[WHOLE] = [x for x in self._ms[WHOLE]]
+
+        # fill beginning of the list with the first acceptable time
+        index_of_first_acceptable_time = next((i for i, time in enumerate(self._ms_interpolated[WHOLE]) if self._is_time_acceptable(time)), None)
+        for i in range(index_of_first_acceptable_time):
+            self._ms_interpolated[WHOLE][i] = self._ms_interpolated[WHOLE][index_of_first_acceptable_time]
+
+        # fill ending of the list with the last acceptable time
+        index_of_last_acceptable_time = 0
+        for i, time in enumerate(reversed(self._ms_interpolated[WHOLE])):
+            if self._is_time_acceptable(time):
+                index_of_last_acceptable_time = len(self._ms_interpolated[WHOLE]) - i - 1
+                break
+        for i in range(len(self._ms_interpolated[WHOLE]) - 1, index_of_last_acceptable_time, -1):
+            self._ms_interpolated[WHOLE][i] = self._ms_interpolated[WHOLE][index_of_last_acceptable_time]
+
+        # fill in the holes inbeteween
+        previous_acceptable = index_of_first_acceptable_time
+        next_acceptable = previous_acceptable
+        for i in range(index_of_first_acceptable_time, index_of_last_acceptable_time + 1):
+            # if current time ok, set it as the next acceptable
+            if self._is_time_acceptable(self._ms_interpolated[WHOLE][i]):
+                next_acceptable = i
+            else:
+                next_acceptable = None
+
+            # if it is a second acceptable in a row, move the previous cursor also to this index
+            if next_acceptable is not None:
+                previous_acceptable = i
+            # else there were some unacceptables in between
+            else:
