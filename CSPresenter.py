@@ -1,5 +1,7 @@
 import random as rnd
+import sys
 import time
+from threading import Thread
 from typing import Optional, List
 
 from CSView import CSView
@@ -27,7 +29,7 @@ class CSPresenter:
         self._cs_event_system = cs_event_system
 
         # SART config
-        self._step_count = 18  # type: int
+        self._step_count = 256  # type: int
         self._tutorial_step_count = 18  # type: int
 
         # state holders
@@ -40,6 +42,18 @@ class CSPresenter:
         self._current_step = 0  # type: int
         self._current_number = 0  # type: int
         self._stopwatch_start_time = 0  # type: float  # used as a store for measuring time of user input
+
+        # setup the most precise timer for Python 2.7
+        # in python 3, the preffered call would be time.perf_counter()
+        # https://www.pythoncentral.io/measure-time-in-python-time-time-vs-time-clock/
+        # https://www.tutorialspoint.com/python/time_clock.htm
+        # https://docs.microsoft.com/en-us/windows/win32/api/profileapi/nf-profileapi-queryperformancecounter
+        if sys.platform == 'win32':
+            # On Windows, the best timer is time.clock (most precise of em all)
+            self._stopwatch_time = time.clock
+        else:
+            # On most other platforms the best timer is time.time (time.clock returns CPU time which is wrong)
+            self._stopwatch_time = time.time
 
     # || The following functions each control a certain logical part/functionality of the app ||
 
@@ -136,7 +150,7 @@ class CSPresenter:
 
     def _show_result(self):
         # self._loaded_cs_data[self._csd_index].evaluate_results()  # debug
-        self._loaded_cs_data[self._csd_index].print_results()  # debug
+        # self._loaded_cs_data[self._csd_index].print_results()  # debug
         self._cs_view.set_content("results", (self._loaded_cs_data[self._csd_index], self._is_result_halved, self._csd_index + 1, len(self._loaded_cs_data)))
 
     # --- TEST SEQUENCE ---
@@ -159,47 +173,59 @@ class CSPresenter:
     def _show_ready(self):
         self._cs_view.set_content("ready")
         self._cs_view.set_timer(1000, self._show_empty)
+        self._cs_view.set_timer(1500, self._loop_digits_thread_wrap)  # wait a while and then start displaying numbers using a new thread for precise timing
 
     def _show_empty(self):
         self._cs_view.clear_content()
-        self._cs_view.set_timer(500, self._show_number)  # wait a while and then display first number
         self._cs_event_system.add_callback("action", self._action)
 
-    # -- in a loop --
-    def _show_number(self):
-        self._reset_stopwatch()
-        self._cs_view.set_timer(313, self._show_mask)
-        self._cs_view.set_timer(438, self._show_response_cue)
-        self._cs_view.set_timer(501, self._show_after_mask)
-        self._cs_view.set_timer(876, self._show_fixation)
-        self._cs_view.set_timer(1439, self._decide_test_end)
-        self._cs_view.set_content("number", self._current_number)
+    def _loop_digits_thread_wrap(self):
+        timing_thread = Thread(target=self._loop_digits)
+        timing_thread.daemon = True
+        timing_thread.start()
 
-    def _show_mask(self):
-        self._cs_view.set_content("mask")
+    def _loop_digits(self):
+        # precise sleeping method inspiration https://stackoverflow.com/questions/40496780/how-to-make-while-loops-take-a-set-amount-of-time/40496844#40496844
+        while True:
+            self._start_stopwatch()
 
-    def _show_response_cue(self):
-        self._cs_view.set_content("response")
+            self._cs_view.set_content("number", self._current_number)
+            time_1 = 0.313 - (self._stopwatch_time() - self._stopwatch_start_time)  # 313
+            if time_1 > 0:
+                time.sleep(time_1)
 
-    def _show_after_mask(self):
-        self._cs_view.set_content("mask")
+            self._cs_view.set_content("mask")
+            time_2 = 0.438 - (self._stopwatch_time() - self._stopwatch_start_time)  # + 125
+            if time_2 > 0:
+                time.sleep(time_2)
 
-    def _show_fixation(self):
-        self._cs_view.set_content("fixation")
+            self._cs_view.set_content("response")
+            time_3 = 0.501 - (self._stopwatch_time() - self._stopwatch_start_time)  # + 63
+            if time_3 > 0:
+                time.sleep(time_3)
 
-    # decide whether to continue looping or show result screen
-    def _decide_test_end(self):
-        self._current_step += 1
-        if self._is_tutorial and self._current_step == self._tutorial_step_count:
-            self._show_tutorial_results()
-        elif self._current_step == self._step_count:
-            self._show_outro()
-        else:
+            self._cs_view.set_content("mask")
+            time_4 = 0.876 - (self._stopwatch_time() - self._stopwatch_start_time)  # + 375
+            if time_4 > 0:
+                time.sleep(time_4)
+
+            # increment
+            self._current_step += 1
             self._current_number += 1
             if self._current_number == 10:
                 self._current_number = 1
-            self._show_number()
-    # -- loop end --
+            # decide if should end
+            if self._is_tutorial and self._current_step == self._tutorial_step_count:
+                self._cs_view.set_timer(0, self._show_tutorial_results)  # (cant call directly from a different thread)
+                break
+            elif self._current_step == self._step_count:
+                self._cs_view.set_timer(0, self._show_outro)
+                break
+            # else show fixation for next digit
+            self._cs_view.set_content("fixation")
+            time_5 = 1.439 - (self._stopwatch_time() - self._stopwatch_start_time)  # + 563
+            if time_5 > 0:
+                time.sleep(time_5)
 
     # --- INPUT EVALUATION ---
     def _action(self):
@@ -240,12 +266,12 @@ class CSPresenter:
     # || Helper functions ||
 
     # start the stopwatch
-    def _reset_stopwatch(self):
+    def _start_stopwatch(self):
         # type: (CSPresenter) -> None
-        self._stopwatch_start_time = time.clock()  # in python 3, the preffered call would be time.perf_counter(), clock() should be better than time() on Win
+        self._stopwatch_start_time = self._stopwatch_time()
 
     # stop stopwatch stopwatch and get time
     def _get_stopwatch_time(self):
         # type: (CSPresenter) -> float
-        return time.clock() - self._stopwatch_start_time
+        return self._stopwatch_time() - self._stopwatch_start_time
 

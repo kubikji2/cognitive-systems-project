@@ -13,7 +13,6 @@ class TVCImage(TkinterViewContent):
         img = Image.open(self.image_path)
         img = img.resize((50, 50), Image.LANCZOS)  # Image.NEAREST for fastest
         self.photo_img = ImageTk.PhotoImage(img)
-        # todo consider image loading into some cache, to not load them again every time
 
     def show(self, parent):
         # Create widgets
