@@ -7,6 +7,7 @@ Current list of commands (event names) for CSPresenter:
 - "back"
 - "right"
 - "left"
+- "any"
 """
 
 
@@ -77,7 +78,8 @@ class CSEventSystem:
     # *args and **kwargs explanation here https://realpython.com/python-kwargs-and-args/
     def trigger(self, event_name, *args, **kwargs):
         if event_name not in self._callbacks and event_name not in self._onetime_callbacks:
-            print("[trigger] WARN Event '" + event_name + "' triggered without listeners")
+            # print("[trigger] WARN Event '" + event_name + "' triggered without listeners")
+            pass
         # one-time callbacks
         elif event_name in self._onetime_callbacks:  # onetime callbacks take priority over normal ones
             # print("[trigger] Event '" + event_name + "' triggered one-time")

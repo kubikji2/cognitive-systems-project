@@ -1,7 +1,7 @@
 import random as rnd
 import sys
 import time
-from threading import Thread
+# from threading import Thread
 from typing import Optional, List
 
 from CSView import CSView
@@ -29,8 +29,8 @@ class CSPresenter:
         self._cs_event_system = cs_event_system
 
         # SART config
-        self._step_count = 256  # type: int
-        self._tutorial_step_count = 18  # type: int
+        self._step_count = 243  # type: int
+        self._tutorial_step_count = 27  # type: int
 
         # state holders
         self._current_cs_data = None  # type: Optional[CSData]  # the CSData object for storing reactions during the test and viewing results after the test
@@ -173,62 +173,51 @@ class CSPresenter:
     def _show_ready(self):
         self._cs_view.set_content("ready")
         self._cs_view.set_timer(1000, self._show_empty)
-        self._cs_view.set_timer(1500, self._loop_digits_thread_wrap)  # wait a while and then start displaying numbers using a new thread for precise timing
 
     def _show_empty(self):
         self._cs_view.clear_content()
-        self._cs_event_system.add_callback("action", self._action)
+        self._cs_view.set_timer(500, self._show_number)  # wait a while and then display first number
+        self._cs_event_system.add_callback("any", self._reaction)
 
-    def _loop_digits_thread_wrap(self):
-        timing_thread = Thread(target=self._loop_digits)
-        timing_thread.daemon = True
-        timing_thread.start()
+    # -- in a loop --
+    def _show_number(self):
+        self._start_stopwatch()
+        self._cs_view.set_timer(313, self._show_mask)
+        self._cs_view.set_timer(438, self._show_response_cue)
+        self._cs_view.set_timer(501, self._show_after_mask)
+        self._cs_view.set_timer(876, self._show_fixation)
+        self._cs_view.set_timer(1439, self._decide_test_end)
+        self._cs_view.set_content("number", self._current_number)
 
-    def _loop_digits(self):
-        # precise sleeping method inspiration https://stackoverflow.com/questions/40496780/how-to-make-while-loops-take-a-set-amount-of-time/40496844#40496844
-        while True:
-            self._start_stopwatch()
+    def _show_mask(self):
+        self._cs_view.set_content("mask")
 
-            self._cs_view.set_content("number", self._current_number)
-            time_1 = 0.313 - (self._stopwatch_time() - self._stopwatch_start_time)  # 313
-            if time_1 > 0:
-                time.sleep(time_1)
+    def _show_response_cue(self):
+        self._cs_view.set_content("response")
 
-            self._cs_view.set_content("mask")
-            time_2 = 0.438 - (self._stopwatch_time() - self._stopwatch_start_time)  # + 125
-            if time_2 > 0:
-                time.sleep(time_2)
+    def _show_after_mask(self):
+        self._cs_view.set_content("mask")
 
-            self._cs_view.set_content("response")
-            time_3 = 0.501 - (self._stopwatch_time() - self._stopwatch_start_time)  # + 63
-            if time_3 > 0:
-                time.sleep(time_3)
+    def _show_fixation(self):
+        self._cs_view.set_content("fixation")
 
-            self._cs_view.set_content("mask")
-            time_4 = 0.876 - (self._stopwatch_time() - self._stopwatch_start_time)  # + 375
-            if time_4 > 0:
-                time.sleep(time_4)
-
-            # increment
-            self._current_step += 1
+    # decide whether to continue looping or show result screen
+    def _decide_test_end(self):
+        self._current_step += 1
+        if self._is_tutorial and self._current_step == self._tutorial_step_count:
+            self._show_tutorial_results()
+        elif self._current_step == self._step_count:
+            self._show_outro()
+        else:
             self._current_number += 1
             if self._current_number == 10:
                 self._current_number = 1
-            # decide if should end
-            if self._is_tutorial and self._current_step == self._tutorial_step_count:
-                self._cs_view.set_timer(0, self._show_tutorial_results)  # (cant call directly from a different thread)
-                break
-            elif self._current_step == self._step_count:
-                self._cs_view.set_timer(0, self._show_outro)
-                break
-            # else show fixation for next digit
-            self._cs_view.set_content("fixation")
-            time_5 = 1.439 - (self._stopwatch_time() - self._stopwatch_start_time)  # + 563
-            if time_5 > 0:
-                time.sleep(time_5)
+            self._show_number()
+
+    # -- loop end --
 
     # --- INPUT EVALUATION ---
-    def _action(self):
+    def _reaction(self):
         action_time = self._get_stopwatch_time()
         self._current_cs_data.save_reaction(self._current_step, action_time)
         # debug

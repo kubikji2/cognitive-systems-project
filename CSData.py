@@ -401,4 +401,5 @@ class CSData:
     # --- property-like interface for VIEW --- EDIT: removed and instead made the key stuffs public
 
     def get_total_errors(self):
-        return [x + y + z for x, y, z in zip(self.comission_errors, self.omission_errors, self.other_errors)]
+        # return [x + y + z for x, y, z in zip(self.comission_errors, self.omission_errors, self.other_errors)]
+        return [x + y for x, y in zip(self.comission_errors, self.omission_errors)]

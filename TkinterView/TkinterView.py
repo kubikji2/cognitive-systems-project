@@ -47,6 +47,7 @@ class TkinterView(CSView):
         # self._key_event_map["<BackSpace>"] = "back"
         self._key_event_map["<Left>"] = "left"
         self._key_event_map["<Right>"] = "right"
+        self._key_event_map["<Key>"] = "any"  # special event, happening on any key press
         self._key_event_map["f"] = "fullscreen"  # Tkinter view internal event (not controlled by presenter)
 
         self._keycode_key_map = {}
@@ -108,10 +109,12 @@ class TkinterView(CSView):
 
     # a function to be called by Tkinter when specified keys are pressed
     def _key_callback(self, keyboard_event):
+        # trigger special any key event
+        self.cs_event_system.trigger("any")
+        # check whether there are any other bindings
         if keyboard_event.keycode not in self._keycode_key_map:
-            print("[CSTkinterView] key " + repr(keyboard_event.keycode) + " not mapped")
+            # print("[CSTkinterView] key " + repr(keyboard_event.keycode) + " not mapped")
             return
-
         key = self._keycode_key_map[keyboard_event.keycode]
         event = self._key_event_map[key]
         # print("key: " + repr(key))

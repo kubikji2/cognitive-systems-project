@@ -1,16 +1,22 @@
 #!/usr/bin/python2
 
 import Tkinter as Tk
+
+
 from TkinterViewContent import TkinterViewContent
 from CSData import *
 from typing import Optional, Union
 
 import matplotlib
+from matplotlib.ticker import MultipleLocator
 matplotlib.use("TkAgg")  # setting matplotlib to use the 'Tkinter Anti-grain renderer' backend
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import matplotlib.pyplot as plt  # diference of pyplot and figure here: https://stackoverflow.com/questions/5450207/whats-the-difference-between-matplotlib-pyplot-and-matplotlib-figure
 
-BAR_TIME_MAX = 800  # STEP_TIME
+RT_TIME_MAX = 800  # STEP_TIME
+RT_TIME_MIN = 200  # TOO_EARLY_TIME + 100
+DGM_TIME_MAX = 600
+DGM_TIME_MIN = 300
 FFT_TIME_MAX = 80
 FREQ_MAX = 0.35
 PSP_FREQ = 0.0772  # principle SART peak frequency (once per whole 1-9 cycle)
@@ -92,11 +98,11 @@ class TVCResults(TkinterViewContent):
             lbl_std_dev.grid(row=5, column=0, sticky='w')
             lbl_std_dev_.grid(row=5, column=1, sticky='w')
             lbl_slope = Tk.Label(frm_left, text="Slope of reg. line:", font=("Arial", 14))
-            lbl_slope_ = Tk.Label(frm_left, text="{:.1f}".format(self._cs_data.regression_line[1]), font=("Arial", 16), fg='lemon chiffon')
+            lbl_slope_ = Tk.Label(frm_left, text="{:.2f}".format(self._cs_data.regression_line[1]), font=("Arial", 16), fg='lemon chiffon')
             lbl_slope.grid(row=6, column=0, sticky='w')
             lbl_slope_.grid(row=6, column=1, sticky='w')
             lbl_aus = Tk.Label(frm_left, text="Mean variance:", font=("Arial", 14))
-            lbl_aus_ = Tk.Label(frm_left, text="{:.1f}".format(self._cs_data.aus[WHOLE]), font=("Arial", 16), fg='salmon')
+            lbl_aus_ = Tk.Label(frm_left, text="{:.2f}".format(self._cs_data.aus[WHOLE]), font=("Arial", 16), fg='salmon')
             lbl_aus.grid(row=7, column=0, sticky='w')
             lbl_aus_.grid(row=7, column=1, sticky='w')
 
@@ -107,12 +113,16 @@ class TVCResults(TkinterViewContent):
             fig_rt = plt.Figure(figsize=(7.52, 2.2), dpi=100, tight_layout=True)  # create a canvas to draw
             axes_rt = fig_rt.add_subplot(1, 1, 1)  # create an axes object add_subplot(nrows, ncols, index, **kwargs)
             axes_rt.set_title('Response times')
-            axes_rt.set_ylim(TOO_EARLY_TIME, BAR_TIME_MAX)
+            axes_rt.set_ylim(RT_TIME_MIN, RT_TIME_MAX)
+            axes_rt.set_xlim(0, self._cs_data.step_count[WHOLE])
             axes_rt.set_xlabel("Trial number")
             axes_rt.set_ylabel("RT (ms)")
-            axes_rt.set_yticks(np.arange(TOO_EARLY_TIME + 50, BAR_TIME_MAX + 1, 100))
-            axes_rt.set_xticks(np.arange(0, self._cs_data.step_count[WHOLE] + 1, 9))
-            axes_rt.grid(color='gray', linestyle='--', linewidth=0.5)
+            axes_rt.set_yticks(np.arange(RT_TIME_MIN, RT_TIME_MAX + 1, 100))
+            # axes_rt.set_xticks(np.arange(0, self._cs_data.step_count[WHOLE] + 1, 9))
+            axes_rt.xaxis.set_major_locator(MultipleLocator(18))
+            axes_rt.xaxis.set_minor_locator(MultipleLocator(9))
+            axes_rt.grid(which="minor", color='gray', linestyle='--', linewidth=0.5)
+            axes_rt.grid(which="major", color='gray', linestyle='--', linewidth=0.5)
             x_rt = self._cs_data.step_nums_stripped[WHOLE]
             y_rt = self._cs_data.ms_stripped[WHOLE]
             axes_rt.bar(x_rt, y_rt, color='C0', label='RT', align='edge', width=1.0)
@@ -126,10 +136,10 @@ class TVCResults(TkinterViewContent):
             fig_dig_means = plt.Figure(figsize=(3.5, 2.2), dpi=100, tight_layout=True)
             axes_dig_means = fig_dig_means.add_subplot(1, 1, 1)
             axes_dig_means.set_title('Means by digits')
-            axes_dig_means.set_ylim(TOO_EARLY_TIME, BAR_TIME_MAX)
+            axes_dig_means.set_ylim(DGM_TIME_MIN, DGM_TIME_MAX)
             axes_dig_means.set_xlabel("Digits")
             axes_dig_means.set_ylabel("Mean RT (ms)")
-            axes_dig_means.set_yticks(np.arange(TOO_EARLY_TIME + 50, BAR_TIME_MAX + 1, 100))
+            axes_dig_means.set_yticks(np.arange(DGM_TIME_MIN, DGM_TIME_MAX + 1, 100))
             axes_dig_means.set_xticks(DIGITS_EXCEPT_3)
             axes_dig_means.grid(color='gray', linestyle='--', linewidth=0.5)
             x_dig_means = DIGITS_EXCEPT_3
@@ -275,10 +285,10 @@ class TVCResults(TkinterViewContent):
 
             lbl_aus = Tk.Label(frm_left, text="Mean variance:", font=("Arial", 14))
             lbl_aus.grid(row=6, column=0, sticky='w')
-            lbl_aus_1 = Tk.Label(frm_left, text="{:.1f} ms".format(self._cs_data.aus[FIRST]), font=("Arial", 16), fg='salmon')
+            lbl_aus_1 = Tk.Label(frm_left, text="{:.2f} ms".format(self._cs_data.aus[FIRST]), font=("Arial", 16), fg='salmon')
             aus_diff = self._cs_data.aus[SECOND] - self._cs_data.aus[FIRST]
-            lbl_aus_2 = Tk.Label(frm_left, text="{:+.1f}".format(aus_diff), font=("Arial", 16), fg='brown1' if aus_diff > 0 else 'medium sea green' if aus_diff < 0 else 'white')
-            lbl_aus_3 = Tk.Label(frm_left, text="{:.1f} ms".format(self._cs_data.aus[SECOND]), font=("Arial", 16), fg='salmon')
+            lbl_aus_2 = Tk.Label(frm_left, text="{:+.2f}".format(aus_diff), font=("Arial", 16), fg='brown1' if aus_diff > 0 else 'medium sea green' if aus_diff < 0 else 'white')
+            lbl_aus_3 = Tk.Label(frm_left, text="{:.2f} ms".format(self._cs_data.aus[SECOND]), font=("Arial", 16), fg='salmon')
             lbl_aus_1.grid(row=6, column=1)
             lbl_aus_2.grid(row=6, column=2)
             lbl_aus_3.grid(row=6, column=3)
@@ -290,10 +300,10 @@ class TVCResults(TkinterViewContent):
             fig_dig_means_1 = plt.Figure(figsize=(3.5, 2.2), dpi=100, tight_layout=True)
             axes_dig_means_1 = fig_dig_means_1.add_subplot(1, 1, 1)
             axes_dig_means_1.set_title('Means by digits 1st')
-            axes_dig_means_1.set_ylim(TOO_EARLY_TIME, BAR_TIME_MAX)
+            axes_dig_means_1.set_ylim(DGM_TIME_MIN, DGM_TIME_MAX)
             axes_dig_means_1.set_xlabel("Digits")
             axes_dig_means_1.set_ylabel("Mean RT (ms)")
-            axes_dig_means_1.set_yticks(np.arange(TOO_EARLY_TIME + 50, BAR_TIME_MAX + 1, 100))
+            axes_dig_means_1.set_yticks(np.arange(DGM_TIME_MIN, DGM_TIME_MAX + 1, 100))
             axes_dig_means_1.set_xticks(DIGITS_EXCEPT_3)
             axes_dig_means_1.grid(color='gray', linestyle='--', linewidth=0.5)
             x_dig_means_1 = DIGITS_EXCEPT_3
@@ -305,10 +315,10 @@ class TVCResults(TkinterViewContent):
             fig_dig_means_2 = plt.Figure(figsize=(3.5, 2.2), dpi=100, tight_layout=True)
             axes_dig_means_2 = fig_dig_means_2.add_subplot(1, 1, 1)
             axes_dig_means_2.set_title('Means by digits 2nd')
-            axes_dig_means_2.set_ylim(TOO_EARLY_TIME, BAR_TIME_MAX)
+            axes_dig_means_2.set_ylim(DGM_TIME_MIN, DGM_TIME_MAX)
             axes_dig_means_2.set_xlabel("Digits")
             axes_dig_means_2.set_ylabel("Mean RT (ms)")
-            axes_dig_means_2.set_yticks(np.arange(TOO_EARLY_TIME + 50, BAR_TIME_MAX + 1, 100))
+            axes_dig_means_2.set_yticks(np.arange(DGM_TIME_MIN, DGM_TIME_MAX + 1, 100))
             axes_dig_means_2.set_xticks(DIGITS_EXCEPT_3)
             axes_dig_means_2.grid(color='gray', linestyle='--', linewidth=0.5)
             x_dig_means_2 = DIGITS_EXCEPT_3

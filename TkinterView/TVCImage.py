@@ -12,7 +12,7 @@ class TVCImage(TkinterViewContent):
         self.image_path = image_path
         img = Image.open(self.image_path)
         img = img.resize((50, 50), Image.LANCZOS)  # Image.NEAREST for fastest
-        self.photo_img = ImageTk.PhotoImage(img)
+        self.photo_img = ImageTk.PhotoImage(img)  # IMPORTANT - need to keep theis references not only because speed, but also so that Python doesnt garbage collect the picture
 
     def show(self, parent):
         # Create widgets
