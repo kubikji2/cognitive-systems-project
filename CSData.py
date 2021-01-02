@@ -38,6 +38,9 @@ class CSData:
     step_nums_stripped = None  # type: List[List[int]]
     ms_interpolated = None  # type: List[List[float]]
     mean_by_digit = None  # type: List[List[float]]
+    fft = None  # type: List[List[float]]
+    fft_freq = None  # type: List[List[float]]
+    aus = None  # type: List[float]
     mean = None  # type: List[float]
     std_dev = None  # type: List[float]
     regression_line = None  # type: Tuple[float, float]
@@ -71,6 +74,9 @@ class CSData:
             self.step_nums_stripped = [[], [], []]  # specifies the step numbers of the corresponding stripped times
             self.ms_interpolated = [[], [], []]  # for FFT analysis
             self.mean_by_digit = [[], [], []]  # means for digits 4, 5, 6, 7, 8, 9, 1, 2
+            self.fft = [[], [], []]  # resulting amplitudes/powers of frequencies from FFT
+            self.fft_freq = [[], [], []]  # corresponding frequencies from FFT
+            self.aus = [0.0, 0.0, 0.0]  # area under spectrum from FFT
             self.mean = [0.0, 0.0, 0.0]
             self.std_dev = [0.0, 0.0, 0.0]
             self.regression_line = (0.0, 0.0)  # [0] is the y offset, [1] is the slope
@@ -138,8 +144,18 @@ class CSData:
         print(zip(DIGITS_EXCEPT_3, self.mean_by_digit[FIRST])),
         print(zip(DIGITS_EXCEPT_3, self.mean_by_digit[SECOND]))
         print()
+        print("FFT: ")
+        print(self.fft[WHOLE])
+        print(self.fft_freq[WHOLE])
+        print(self.fft[FIRST]),
+        print(self.fft[SECOND])
+        print(self.fft_freq[FIRST]),
+        print(self.fft_freq[SECOND])
+        print()
+        print("AUS:", self.aus[WHOLE], self.aus[FIRST], self.aus[SECOND])
         print("Means:", self.mean[WHOLE], self.mean[FIRST], self.mean[SECOND])
         print("Std devs:", self.std_dev[WHOLE], self.std_dev[FIRST], self.std_dev[SECOND])
+        print("Regression line:", self.regression_line[0], self.regression_line[1])
 
     # saves current state of data to file
     def save_to_file(self):
@@ -279,14 +295,85 @@ class CSData:
                 self.std_dev[part] = 0.0
 
     def _calculate_fft(self):
-        # debug check
+        # reference for scipy FFT https://www.youtube.com/watch?v=b06pFMIRO0I
+        # fastness of computation https://dsp.stackexchange.com/questions/10933/fourier-transform-to-the-power-of-two
+        # (using dirrectly matplotlibs PSD https://matplotlib.org/3.3.3/gallery/lines_bars_and_markers/psd_demo.html#sphx-glr-gallery-lines-bars-and-markers-psd-demo-py)
+        # how to get PSD otherwise https://www.researchgate.net/post/What-formula-should-I-use-to-calculate-the-power-spectrum-density-of-a-FFT
+        # also fft to psd https://www.mathworks.com/help/signal/ug/power-spectral-density-estimates-using-fft.html
+        # bin width https://stackoverflow.com/questions/10754549/fft-bin-width-clarification
+
         for part in PARTS:
+            # check
             assert(self.step_count[part] == len(self.ms_interpolated[part]))
 
-        # https://stackoverflow.com/questions/62106028/what-is-the-difference-between-np-linspace-and-np-arange
-        # https://stackoverflow.com/questions/31820107/is-there-a-numpy-function-that-allows-you-to-specify-start-step-and-number
-        time_vector = np.linspace(0, self.step_count[WHOLE]) * STEP_TIME
+            # EDIT --- additional data preparation (removal of constant and linear component, since they're already being analyzed before) ---
+            # [linear regression copied]
+            x = np.arange(0, self.step_count[part])
+            y = np.array(self.ms_interpolated[part])
 
+            # number of observations/points
+            n = np.size(x)
+
+            # mean of x and y vector
+            m_x, m_y = np.mean(x), np.mean(y)
+
+            # calculating cross-deviation and deviation about x
+            ss_xy = np.sum(y * x) - n * m_y * m_x
+            ss_xx = np.sum(x * x) - n * m_x * m_x
+
+            # calculating regression coefficients
+            b_1 = ss_xy / ss_xx
+            b_0 = m_y - b_1 * m_x
+
+            lin_line = b_1 * x
+            new_y = y - b_0 - lin_line
+            # ---
+
+            # https://stackoverflow.com/questions/62106028/what-is-the-difference-between-np-linspace-and-np-arange
+            # https://stackoverflow.com/questions/31820107/is-there-a-numpy-function-that-allows-you-to-specify-start-step-and-number
+            # time_vector = np.linspace(0, self.step_count[part]) * STEP_TIME / 1000.0 # we dont need it
+
+            # useful variables
+            bin_width = STEP_TIME / 1000.0  # IMPORTANT even if we have the values in ms, we want the x axis (frequencies) in Hz aka 1/s
+            sampling_frequency = 1 / bin_width  # in Hz, should be 1 / 1.439 = 0.6949 Hz
+            n_samples = self.step_count[part]
+            signal = new_y  # --- EDIT from np.array(self.ms_interpolated[part])
+            frequencies = fftpack.fftfreq(n_samples, bin_width)  # here we use step time in seconds so we can have frequencies in Hz (1/s) instead of 1/ms
+
+            # calculation
+            signal_fft = fftpack.fft(signal)  # calculating FFT -> array with complex number results of FFT
+            assert(signal_fft.size == n_samples)
+            amplitudes = np.abs(signal_fft)  # by making absolute values -> array of amplitudes of frequencies
+            amplitudes_scaled = amplitudes / n_samples
+            # divided by the num of samples so that the amps are samely scaled for different n_samples
+            # at amplitudes_scaled[0] we can find the mean value (this is slightly different to regular mean due to interpolation)
+            # powers = amplitudes**2  # weirdly high
+            # power_spectral_density = powers * bin_width / n_samples   # PSD(fk) = |X(fk)|^2 / (Fsampling * Nsamples) = |X(fk)|^2 * bin_width / Nsamples
+            # intuitively, think about it with the area under spectrum in mind, each sample is a column of certain width
+
+            # writing to data
+            self.fft[part] = amplitudes_scaled.tolist()[1: n_samples//2 + 1]
+            self.fft_freq[part] = frequencies.tolist()[1: n_samples//2 + 1]  # [0, 0.1, 0.2, -0.3, -0.2, -0.1] -> [0.1, 0.2, -0.3]
+            if n_samples % 2 == 0:
+                self.fft_freq[part][-1] *= -1.0  # convert the last negative freq to positive (its the nyquist / hlaf the sampling freq)
+            self.aus[part] = sum(self.fft[part]) / n_samples  # its my own AUS - sum ~ integral, and since amp_scaled are normalized, then only thing remaining after sum is divide once more by n_samples, and this should be a normalized value across varying n_samples
+
+            debug = True
+            if debug:
+                np.set_printoptions(precision=3, suppress=True, linewidth=np.inf)
+                print("mean: {}".format(np.mean(self.ms_interpolated[part])))
+                print("bin width: {}".format(bin_width))
+                print("sampling frq: {}".format(sampling_frequency))
+                print("n_samples: {}".format(n_samples))
+                print("interpolated: {}".format(self.ms_interpolated[part]))
+                print("inter. scal.: {}".format(new_y))
+                print("mean inter. scal.: {}".format(np.mean(new_y)))
+                print("amplitudes: {}".format(amplitudes))
+                print("amplitudes scaled: {}".format(amplitudes_scaled))
+                # print("powers: {}".format(powers))
+                # print("PSD: {}".format(power_spectral_density))
+                print("frequencies: {}".format(frequencies))
+                print("frequencies_ {}".format(self.fft_freq[part]))
 
 
 

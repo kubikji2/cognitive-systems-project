@@ -8,10 +8,15 @@ from typing import Optional, Union
 import matplotlib
 matplotlib.use("TkAgg")  # setting matplotlib to use the 'Tkinter Anti-grain renderer' backend
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-import matplotlib.figure as plot  # diference of pyplot and figure here: https://stackoverflow.com/questions/5450207/whats-the-difference-between-matplotlib-pyplot-and-matplotlib-figure
+import matplotlib.pyplot as plt  # diference of pyplot and figure here: https://stackoverflow.com/questions/5450207/whats-the-difference-between-matplotlib-pyplot-and-matplotlib-figure
+
+BAR_TIME_MAX = 800  # STEP_TIME
+FFT_TIME_MAX = 80
+FREQ_MAX = 0.35
+PSP_FREQ = 0.0772  # principle SART peak frequency (once per whole 1-9 cycle)
 
 """
-Screen showing the results to the user
+Screen showing the results to the user. |WARNING| Please do not judge this class, could be done better in a million ways :D 
 """
 class TVCResults(TkinterViewContent):
 
@@ -25,90 +30,334 @@ class TVCResults(TkinterViewContent):
         # BROWSING PREVIOUSLY SAVED RESULTS BUT NONE FOUND
         if self._cs_data is None:
             err = Tk.Label(parent, text="No saved results found")
+            err.grid(row=0)
             err1 = Tk.Label(parent, text="Press R to try again")
+            err1.grid(row=1)
             err2 = Tk.Label(parent, text="Press Esc to go back")
-            err.pack()
-            err1.pack()
-            err2.pack()
+            err2.grid(row=2)
             return
 
         # OVERALL RESULT
         if not self._halved:
-            lbl_header = Tk.Label(parent, text="Overall")
-            lbl_header.pack()
+            # SHOWING RESULT OF THE CURRENT TEST
+            if self._index is None or self._max_index is None:
+                # TOP
+                lbl_header = Tk.Label(parent, text="Overall result", font=("Arial", 24))
+                lbl_controls1 = Tk.Label(parent, text="Press Enter or space to switch to half-by-half comparison", font=("Arial", 14))
+                lbl_controls2 = Tk.Label(parent, text="Press R to go back to intro")
+                lbl_controls3 = Tk.Label(parent, text="Press Esc to exit")
+            # BROWSING PREVIOUSLY SAVED RESULTS
+            else:
+                lbl_header = Tk.Label(parent, text="Result {} of {}".format(self._index, self._max_index), font=("Arial", 16))
+                lbl_controls1 = Tk.Label(parent, text="Press Enter or space to switch to half-by-half comparison")
+                lbl_controls2 = Tk.Label(parent, text="Press Left / Right to browse results")
+                lbl_controls3 = Tk.Label(parent, text="Press Esc to go back to intro")
+            lbl_sub_header = Tk.Label(parent, text=(self._cs_data.name + " " + str(self._cs_data.timestamp.strftime("%Y-%m-%d %H:%M:%S"))), font=("Arial", 14))
 
-        # else:
+            frm_results = Tk.Frame(parent)
+
+            frm_left = Tk.Frame(frm_results)
+            frm_left.columnconfigure(0, weight=1, minsize=220)
+            frm_left.columnconfigure(1, weight=1, minsize=70)
+
+            frm_right = Tk.Frame(frm_results)
+            frm_right.columnconfigure(0, weight=1, minsize=200)
+            frm_right.columnconfigure(1, weight=1, minsize=200)
+            frm_right.rowconfigure(0, weight=1, minsize=100)
+            frm_right.rowconfigure(1, weight=1, minsize=100)
+
+            #    LEFT
+            lbl_trials = Tk.Label(frm_left, text="Total trials:", font=("Arial", 14))
+            lbl_trials_ = Tk.Label(frm_left, text="{}".format(self._cs_data.step_count[WHOLE]), font=("Arial", 16))
+            lbl_trials.grid(row=0, column=0, sticky='w', pady=(15, 0))
+            lbl_trials_.grid(row=0, column=1, sticky='w', pady=(15, 0))
+            lbl_com_err = Tk.Label(frm_left, text="Comission errors:", font=("Arial", 14))
+            lbl_com_err_ = Tk.Label(frm_left, text="{}".format(self._cs_data.comission_errors[WHOLE]), font=("Arial", 16))
+            lbl_com_err.grid(row=1, column=0, sticky='w')
+            lbl_com_err_.grid(row=1, column=1, sticky='w')
+            lbl_omi_err = Tk.Label(frm_left, text="Omission errors:", font=("Arial", 14))
+            lbl_omi_err_ = Tk.Label(frm_left, text="{}".format(self._cs_data.omission_errors[WHOLE]), font=("Arial", 16))
+            lbl_omi_err.grid(row=2, column=0, sticky='w')
+            lbl_omi_err_.grid(row=2, column=1, sticky='w')
+            lbl_oth_err = Tk.Label(frm_left, text="Other errors:", font=("Arial", 14))
+            lbl_oth_err_ = Tk.Label(frm_left, text="{}".format(self._cs_data.other_errors[WHOLE]), font=("Arial", 16))
+            lbl_oth_err.grid(row=3, column=0, sticky='w')
+            lbl_oth_err_.grid(row=3, column=1, sticky='w')
+            lbl_mean = Tk.Label(frm_left, text="Mean of RTs:", font=("Arial", 14))
+            lbl_mean_ = Tk.Label(frm_left, text="{:.0f} ms".format(self._cs_data.mean[WHOLE]), font=("Arial", 16))
+            lbl_mean.grid(row=4, column=0, sticky='w')
+            lbl_mean_.grid(row=4, column=1, sticky='w')
+            lbl_std_dev = Tk.Label(frm_left, text="Standard dev. of RTs:", font=("Arial", 14))
+            lbl_std_dev_ = Tk.Label(frm_left, text="{:.0f} ms".format(self._cs_data.std_dev[WHOLE]), font=("Arial", 16))
+            lbl_std_dev.grid(row=5, column=0, sticky='w')
+            lbl_std_dev_.grid(row=5, column=1, sticky='w')
+            lbl_slope = Tk.Label(frm_left, text="Slope of reg. line:", font=("Arial", 14))
+            lbl_slope_ = Tk.Label(frm_left, text="{:.1f}".format(self._cs_data.regression_line[1]), font=("Arial", 16))
+            lbl_slope.grid(row=6, column=0, sticky='w')
+            lbl_slope_.grid(row=6, column=1, sticky='w')
+            lbl_aus = Tk.Label(frm_left, text="Mean variance:", font=("Arial", 14))
+            lbl_aus_ = Tk.Label(frm_left, text="{:.1f}".format(self._cs_data.aus[WHOLE]), font=("Arial", 16))
+            lbl_aus.grid(row=7, column=0, sticky='w')
+            lbl_aus_.grid(row=7, column=1, sticky='w')
+
+            #    RIGHT
+            plt.style.use('dark_background')
+
+            # response time graph
+            fig_rt = plt.Figure(figsize=(7.52, 2.2), dpi=100, tight_layout=True)  # create a canvas to draw
+            axes_rt = fig_rt.add_subplot(1, 1, 1)  # create an axes object add_subplot(nrows, ncols, index, **kwargs)
+            axes_rt.set_title('Response times')
+            axes_rt.set_ylim(TOO_EARLY_TIME, BAR_TIME_MAX)
+            axes_rt.set_xlabel("Trial number")
+            axes_rt.set_ylabel("RT (ms)")
+            axes_rt.set_yticks(np.arange(TOO_EARLY_TIME + 50, BAR_TIME_MAX + 1, 100))
+            axes_rt.set_xticks(np.arange(0, self._cs_data.step_count[WHOLE] + 1, 9))
+            axes_rt.grid(color='gray', linestyle='--', linewidth=0.5)
+            x_rt = self._cs_data.step_nums_stripped[WHOLE]
+            y_rt = self._cs_data.ms_stripped[WHOLE]
+            axes_rt.bar(x_rt, y_rt, color='C0', label='RT', align='edge', width=1.0)
+            x_rt_line = np.array([0, self._cs_data.step_nums_stripped[WHOLE][-1]])
+            y_rt_line = np.array(2 * [self._cs_data.regression_line[0]]) + x_rt_line * np.array(2 * [self._cs_data.regression_line[1]])  # once * for more elements, once * for vector multiplication ^^
+            axes_rt.plot(x_rt_line, y_rt_line, color='C1', label="slope")
+            axes_rt.legend()
 
 
-        # SHOWING RESULT OF THE CURRENT TEST
-        if self._index is None or self._max_index is None:
-            # TOP
-            lbl_header = Tk.Label(parent, text="Overall result", font=("Arial", 24))
-            lbl_controls2 = Tk.Label(parent, text="Press R to go back to intro")
-            lbl_controls3 = Tk.Label(parent, text="Press Esc to exit")
-        # BROWSING PREVIOUSLY SAVED RESULTS
+            # means by digits graph
+            fig_dig_means = plt.Figure(figsize=(3.5, 2.2), dpi=100, tight_layout=True)
+            axes_dig_means = fig_dig_means.add_subplot(1, 1, 1)
+            axes_dig_means.set_title('Means by digits')
+            axes_dig_means.set_ylim(TOO_EARLY_TIME, BAR_TIME_MAX)
+            axes_dig_means.set_xlabel("Digits")
+            axes_dig_means.set_ylabel("Mean RT (ms)")
+            axes_dig_means.set_yticks(np.arange(TOO_EARLY_TIME + 50, BAR_TIME_MAX + 1, 100))
+            axes_dig_means.set_xticks(DIGITS_EXCEPT_3)
+            axes_dig_means.grid(color='gray', linestyle='--', linewidth=0.5)
+            x_dig_means = DIGITS_EXCEPT_3
+            y_dig_means = self._cs_data.mean_by_digit[WHOLE]
+            axes_dig_means.bar(x_dig_means, y_dig_means, color="C2", label="mean RT", width=0.5)
+            axes_dig_means.legend()
+            # x_dig_means = range(len(DIGITS_EXCEPT_3))
+            # axes_dig_means.set_xticks(x_dig_means)
+            # axes_dig_means.set_xticklabels(DIGITS_EXCEPT_3)
+
+            # fft graph
+            fig_fft = plt.Figure(figsize=(4, 2.2), dpi=100, tight_layout=True)
+            axes_fft = fig_fft.add_subplot(1, 1, 1)
+            axes_fft.set_title('Variance spectrum')
+            axes_fft.set_ylim(0, FFT_TIME_MAX)
+            axes_fft.set_xlabel("Frequency (Hz)")
+            axes_fft.set_ylabel("Amplitude (ms)")
+            axes_fft.set_xticks(np.arange(0, FREQ_MAX + 0.05, 0.05))
+            axes_fft.minorticks_on()
+            axes_fft.grid(color='gray', linestyle='--', linewidth=0.5)
+            axes_fft.axvline(PSP_FREQ, color='rosybrown', linestyle='--', linewidth=0.5)
+            x_dig_means = self._cs_data.fft_freq[WHOLE]
+            y_dig_means = self._cs_data.fft[WHOLE]
+            axes_fft.plot(x_dig_means, y_dig_means, color="C3", label="scaled amplitude")
+            axes_fft.legend()
+            # signal = self._cs_data.ms_interpolated[WHOLE]
+            # axes_fft.psd(signal, Fs=1.0/1.439)
+
+            # Prepare graphs for use with Tkinter
+            cnvs_rt = FigureCanvasTkAgg(fig_rt, frm_right)
+            cnvs_rt.draw()
+            cnvs_dig_mean = FigureCanvasTkAgg(fig_dig_means, frm_right)
+            cnvs_dig_mean.draw()
+            cnvs_fft = FigureCanvasTkAgg(fig_fft, frm_right)
+            cnvs_fft.draw()
+
+            # tlbr_rt = NavigationToolbar2Tk(cnvs_rt, frm_results)
+            # tlbr_rt.update()
+
+            cnvs_rt.get_tk_widget().grid(row=0, columnspan=2)
+            cnvs_dig_mean.get_tk_widget().grid(row=1, column=0, sticky='w')
+            cnvs_fft.get_tk_widget().grid(row=1, column=1, sticky='w')
+            # todo zvazit side, fill a expand, stejne i u toolbaru
+            # cnvs_rt._tkcanvas.grid(row=5, column=1)
+
+            # PLACE ALL THE STUFF AT ONCE FOR NICER APPEAR
+            frm_left.grid(row=0, column=0, padx=(0, 30))
+            frm_right.grid(row=0, column=1)
+            lbl_header.grid(row=0)
+            lbl_sub_header.grid(row=1, pady=(0, 10))
+            frm_results.grid(row=2, pady=(0, 10))
+            lbl_controls1.grid(row=3)
+            lbl_controls2.grid(row=4)
+            lbl_controls3.grid(row=5)
+
         else:
-            lbl_header = Tk.Label(parent, text="Result {} of {}".format(self._index, self._max_index), font=("Arial", 16))
-            lbl_controls2 = Tk.Label(parent, text="Press Left / Right to browse results")
-            lbl_controls3 = Tk.Label(parent, text="Press Esc to go back to intro")
+            # SHOWING RESULT OF THE CURRENT TEST
+            if self._index is None or self._max_index is None:
+                # TOP
+                lbl_header = Tk.Label(parent, text="Half by half comparison", font=("Arial", 24))
+                lbl_controls1 = Tk.Label(parent, text="Press Enter or space to switch to overall result",
+                                         font=("Arial", 14))
+                lbl_controls2 = Tk.Label(parent, text="Press R to go back to intro")
+                lbl_controls3 = Tk.Label(parent, text="Press Esc to exit")
+            # BROWSING PREVIOUSLY SAVED RESULTS
+            else:
+                lbl_header = Tk.Label(parent, text="Result {} of {}".format(self._index, self._max_index),
+                                      font=("Arial", 16))
+                lbl_controls1 = Tk.Label(parent, text="Press Enter or space to switch to overall result")
+                lbl_controls2 = Tk.Label(parent, text="Press Left / Right to browse results")
+                lbl_controls3 = Tk.Label(parent, text="Press Esc to go back to intro")
+            lbl_sub_header = Tk.Label(parent, text=(
+                        self._cs_data.name + " " + str(self._cs_data.timestamp.strftime("%Y-%m-%d %H:%M:%S"))),
+                                      font=("Arial", 14))
 
-        lbl_sub_header = Tk.Label(parent, text=(self._cs_data.name + " " + str(self._cs_data.timestamp.strftime("%Y-%m-%d %H:%M:%S"))), font=("Arial", 14))
+            frm_results = Tk.Frame(parent)
 
+            frm_left = Tk.Frame(frm_results)
+            frm_left.columnconfigure(0, weight=1, minsize=220)
+            frm_left.columnconfigure(1, weight=1, minsize=70)
+            frm_left.columnconfigure(2, weight=1, minsize=70)
+            frm_left.columnconfigure(3, weight=1, minsize=70)
 
-        # middle
-        frm_results = Tk.Frame(parent)
-        frm_left = Tk.Frame(frm_results)
-        frm_right = Tk.Frame(frm_results)
+            frm_right = Tk.Frame(frm_results)
 
-        #    left
-        lbl_count = Tk.Label(frm_left, text="Total trials: {}".format(self._cs_data.step_count[WHOLE]), font=("Arial", 16))
-        lbl_mean = Tk.Label(frm_left, text="Mean RT (respnonse time): {:.0f} ms".format(self._cs_data.mean[WHOLE]), font=("Arial", 16))
-        lbl_std_dev = Tk.Label(frm_left, text="Standart deviation of RT: {:.0f} ms".format(self._cs_data.std_dev[WHOLE]), font=("Arial", 16))
-        lbl_com_err = Tk.Label(frm_left, text="Comission errors (presses on '3'): {}".format(self._cs_data.comission_errors[WHOLE]), font=("Arial", 16))
-        lbl_omi_err = Tk.Label(frm_left, text="Omission errors (missed presses): {}".format(self._cs_data.omission_errors[WHOLE]), font=("Arial", 16))
-        lbl_rnd_err = Tk.Label(frm_left, text="Other errors (multiple/early/late presses): {}".format(self._cs_data.other_errors[WHOLE]), font=("Arial", 16))
+            #    LEFT
+            lbl_first = Tk.Label(frm_left, text="First", font=("Arial", 12))
+            lbl_first.grid(row=0, column=1)
+            lbl_diff = Tk.Label(frm_left, text="Difference", font=("Arial", 12))
+            lbl_diff.grid(row=0, column=2)
+            lbl_second = Tk.Label(frm_left, text="Second", font=("Arial", 12))
+            lbl_second.grid(row=0, column=3)
 
-        #    right
-        fig_rt = plot.Figure(figsize=(4, 3), dpi=100)  # create a canvas to draw
-        axes_rt = fig_rt.add_subplot(111)  # create an axes object
-        axes_rt.set_title('Response times')
-        x_rt = self._cs_data.step_nums_stripped[WHOLE]
-        y_rt = self._cs_data.ms_stripped[WHOLE]
-        axes_rt.bar(x_rt, y_rt)
-        # axes_rt.plot(x_rt, y_rt)  # , kind='bar', legend=True from pyplot
+            lbl_com_err = Tk.Label(frm_left, text="Comission errors:", font=("Arial", 14))
+            lbl_com_err.grid(row=1, column=0, sticky='w')
+            lbl_com_err_1 = Tk.Label(frm_left, text="{}".format(self._cs_data.comission_errors[FIRST]), font=("Arial", 16))
+            com_err_diff = self._cs_data.comission_errors[SECOND] - self._cs_data.comission_errors[FIRST]
+            lbl_com_err_2 = Tk.Label(frm_left, text="{:+d}".format(com_err_diff), font=("Arial", 16), fg='brown1' if com_err_diff > 0 else 'medium sea green' if com_err_diff < 0 else 'white')
+            lbl_com_err_3 = Tk.Label(frm_left, text="{}".format(self._cs_data.comission_errors[SECOND]), font=("Arial", 16))
+            lbl_com_err_1.grid(row=1, column=1)
+            lbl_com_err_2.grid(row=1, column=2)
+            lbl_com_err_3.grid(row=1, column=3)
 
-        cnvs_rt = FigureCanvasTkAgg(fig_rt, frm_right)
-        cnvs_rt.draw()
+            lbl_omi_err = Tk.Label(frm_left, text="Omission errors:", font=("Arial", 14))
+            lbl_omi_err.grid(row=2, column=0, sticky='w')
+            lbl_omi_err_1 = Tk.Label(frm_left, text="{}".format(self._cs_data.omission_errors[FIRST]), font=("Arial", 16))
+            omi_err_diff = self._cs_data.omission_errors[SECOND] - self._cs_data.omission_errors[FIRST]
+            lbl_omi_err_2 = Tk.Label(frm_left, text="{:+d}".format(omi_err_diff), font=("Arial", 16), fg='brown1' if omi_err_diff > 0 else 'medium sea green' if omi_err_diff < 0 else 'white')
+            lbl_omi_err_3 = Tk.Label(frm_left, text="{}".format(self._cs_data.omission_errors[SECOND]), font=("Arial", 16))
+            lbl_omi_err_1.grid(row=2, column=1)
+            lbl_omi_err_2.grid(row=2, column=2)
+            lbl_omi_err_3.grid(row=2, column=3)
 
-        tlbr_rt = NavigationToolbar2Tk(cnvs_rt, frm_right)
-        tlbr_rt.update()
+            lbl_oth_err = Tk.Label(frm_left, text="Other errors:", font=("Arial", 14))
+            lbl_oth_err.grid(row=3, column=0, sticky='w')
+            lbl_oth_err_1 = Tk.Label(frm_left, text="{}".format(self._cs_data.other_errors[FIRST]), font=("Arial", 16))
+            oth_err_diff = self._cs_data.other_errors[SECOND] - self._cs_data.other_errors[FIRST]
+            lbl_oth_err_2 = Tk.Label(frm_left, text="{:+d}".format(oth_err_diff), font=("Arial", 16), fg='brown1' if oth_err_diff > 0 else 'medium sea green' if oth_err_diff < 0 else 'white')
+            lbl_oth_err_3 = Tk.Label(frm_left, text="{}".format(self._cs_data.other_errors[SECOND]), font=("Arial", 16))
+            lbl_oth_err_1.grid(row=3, column=1)
+            lbl_oth_err_2.grid(row=3, column=2)
+            lbl_oth_err_3.grid(row=3, column=3)
 
+            lbl_mean = Tk.Label(frm_left, text="Mean of RTs:", font=("Arial", 14))
+            lbl_mean.grid(row=4, column=0, sticky='w')
+            lbl_mean_1 = Tk.Label(frm_left, text="{:.0f} ms".format(self._cs_data.mean[FIRST]), font=("Arial", 16))
+            mean_diff = self._cs_data.mean[SECOND] - self._cs_data.mean[FIRST]
+            lbl_mean_2 = Tk.Label(frm_left, text="{:+.0f}".format(mean_diff), font=("Arial", 16), fg='brown1' if mean_diff > 0 else 'medium sea green' if mean_diff < 0 else 'white')
+            lbl_mean_3 = Tk.Label(frm_left, text="{:.0f} ms".format(self._cs_data.mean[SECOND]), font=("Arial", 16))
+            lbl_mean_1.grid(row=4, column=1)
+            lbl_mean_2.grid(row=4, column=2)
+            lbl_mean_3.grid(row=4, column=3)
 
-        # bottom
-        lbl_controls = Tk.Label(parent, text="Press Enter or space to switch to half-by-half comparison", font=("Arial", 16))
+            lbl_std_dev = Tk.Label(frm_left, text="Standard dev. of RTs:", font=("Arial", 14))
+            lbl_std_dev.grid(row=5, column=0, sticky='w')
+            lbl_std_dev_1 = Tk.Label(frm_left, text="{:.0f} ms".format(self._cs_data.std_dev[FIRST]), font=("Arial", 16))
+            std_dev_diff = self._cs_data.std_dev[SECOND] - self._cs_data.std_dev[FIRST]
+            lbl_std_dev_2 = Tk.Label(frm_left, text="{:+.0f}".format(std_dev_diff), font=("Arial", 16), fg='brown1' if std_dev_diff > 0 else 'medium sea green' if std_dev_diff < 0 else 'white')
+            lbl_std_dev_3 = Tk.Label(frm_left, text="{:.0f} ms".format(self._cs_data.std_dev[SECOND]), font=("Arial", 16))
+            lbl_std_dev_1.grid(row=5, column=1)
+            lbl_std_dev_2.grid(row=5, column=2)
+            lbl_std_dev_3.grid(row=5, column=3)
 
+            lbl_aus = Tk.Label(frm_left, text="Mean variance:", font=("Arial", 14))
+            lbl_aus.grid(row=6, column=0, sticky='w')
+            lbl_aus_1 = Tk.Label(frm_left, text="{:.1f} ms".format(self._cs_data.aus[FIRST]), font=("Arial", 16))
+            aus_diff = self._cs_data.aus[SECOND] - self._cs_data.aus[FIRST]
+            lbl_aus_2 = Tk.Label(frm_left, text="{:+.1f}".format(aus_diff), font=("Arial", 16), fg='brown1' if aus_diff > 0 else 'medium sea green' if aus_diff < 0 else 'white')
+            lbl_aus_3 = Tk.Label(frm_left, text="{:.1f} ms".format(self._cs_data.aus[SECOND]), font=("Arial", 16))
+            lbl_aus_1.grid(row=6, column=1)
+            lbl_aus_2.grid(row=6, column=2)
+            lbl_aus_3.grid(row=6, column=3)
 
-        # Show widgets
-        lbl_header.pack()
-        lbl_sub_header.pack(pady=(0, 5))
+            #    RIGHT
+            plt.style.use('dark_background')
 
-        frm_results.pack()
-        frm_left.pack(side=Tk.LEFT)
-        frm_right.pack(side=Tk.LEFT)
+            # response time graph
+            fig_rt = plt.Figure(figsize=(9, 2), dpi=100)  # create a canvas to draw
+            axes_rt = fig_rt.add_subplot(1, 1, 1)  # create an axes object add_subplot(nrows, ncols, index, **kwargs)
+            axes_rt.set_title('Response times')
+            axes_rt.set_ylim(TOO_EARLY_TIME, BAR_TIME_MAX)
+            axes_rt.set_yticks(np.arange(TOO_EARLY_TIME + 50, BAR_TIME_MAX + 1, 100))
+            axes_rt.set_xticks(np.arange(0, self._cs_data.step_count[WHOLE] + 1, 9))
+            axes_rt.grid(color='gray', linestyle='--', linewidth=0.5)
+            x_rt = self._cs_data.step_nums_stripped[WHOLE]
+            y_rt = self._cs_data.ms_stripped[WHOLE]
+            axes_rt.bar(x_rt, y_rt, color='C0', label='RT', align='edge', width=1.0)
+            x_rt_line = np.array([0, self._cs_data.step_nums_stripped[WHOLE][-1]])
+            y_rt_line = np.array(2 * [self._cs_data.regression_line[0]]) + x_rt_line * np.array(
+                2 * [self._cs_data.regression_line[1]])  # once * for more elements, once * for vector multiplication ^^
+            axes_rt.plot(x_rt_line, y_rt_line, color='C1', label="slope")
+            axes_rt.legend()
 
-        lbl_count.pack()
-        lbl_mean.pack()
-        lbl_std_dev.pack()
-        lbl_com_err.pack()
-        lbl_omi_err.pack()
-        lbl_rnd_err.pack()
+            # means by digits graph
+            fig_dig_means = plt.Figure(figsize=(3.5, 2), dpi=100)
+            axes_dig_means = fig_dig_means.add_subplot(1, 1, 1)
+            axes_dig_means.set_title('Means by digits')
+            axes_dig_means.set_ylim(TOO_EARLY_TIME, BAR_TIME_MAX)
+            axes_dig_means.set_yticks(np.arange(TOO_EARLY_TIME + 50, BAR_TIME_MAX + 1, 100))
+            axes_dig_means.set_xticks(DIGITS_EXCEPT_3)
+            axes_dig_means.grid(color='gray', linestyle='--', linewidth=0.5)
+            x_dig_means = DIGITS_EXCEPT_3
+            y_dig_means = self._cs_data.mean_by_digit[WHOLE]
+            axes_dig_means.bar(x_dig_means, y_dig_means, color="C2", label="mean RT", width=0.5)
+            axes_dig_means.legend()
+            # x_dig_means = range(len(DIGITS_EXCEPT_3))
+            # axes_dig_means.set_xticks(x_dig_means)
+            # axes_dig_means.set_xticklabels(DIGITS_EXCEPT_3)
 
-        cnvs_rt._tkcanvas.pack()
-        cnvs_rt.get_tk_widget().pack()  # todo zvazit side, fill a expand, stejne i u toolbaru
+            # fft graph
+            fig_fft = plt.Figure(figsize=(4, 2), dpi=100)
+            axes_fft = fig_fft.add_subplot(1, 1, 1)
+            axes_fft.set_title('Variance spectrum')
+            axes_fft.set_ylim(0, FFT_TIME_MAX)
+            # signal = self._cs_data.ms_interpolated[WHOLE]
+            # axes_fft.psd(signal, Fs=1.0/1.439)
+            x_dig_means = self._cs_data.fft_freq[WHOLE]
+            y_dig_means = self._cs_data.fft[WHOLE]
+            axes_fft.plot(x_dig_means, y_dig_means, color="C3", label="scaled amplitude")
+            axes_fft.legend()
 
-        lbl_controls.pack()
-        lbl_controls2.pack()
-        lbl_controls3.pack()
+            # Prepare graphs for use with Tkinter
+            cnvs_rt = FigureCanvasTkAgg(fig_rt, frm_right)
+            cnvs_rt.draw()
+            cnvs_dig_mean = FigureCanvasTkAgg(fig_dig_means, frm_right)
+            cnvs_dig_mean.draw()
+            cnvs_fft = FigureCanvasTkAgg(fig_fft, frm_right)
+            cnvs_fft.draw()
+
+            # tlbr_rt = NavigationToolbar2Tk(cnvs_rt, frm_results)
+            # tlbr_rt.update()
+
+            cnvs_rt.get_tk_widget().grid(row=0, columnspan=2)
+            cnvs_dig_mean.get_tk_widget().grid(row=1, column=0, sticky='e')
+            cnvs_fft.get_tk_widget().grid(row=1, column=1, sticky='w')
+            # todo zvazit side, fill a expand, stejne i u toolbaru
+            # cnvs_rt._tkcanvas.grid(row=5, column=1)
+
+            # PLACE ALL THE STUFF AT ONCE FOR NICER APPEAR
+            frm_left.pack(side="left", fill="both", expand=False, padx=(0, 30))
+            frm_right.pack(side="right", fill="both", expand=True)
+            lbl_header.grid(row=0)
+            lbl_sub_header.grid(row=1, pady=(0, 20))
+            frm_results.grid(row=2, pady=(0, 20))
+            lbl_controls1.grid(row=3)
+            lbl_controls2.grid(row=4)
+            lbl_controls3.grid(row=5)
+
 
     def set_data(self, data):
         # type: (Tuple[Optional[CSData], Optional[bool], Optional[int], Optional[int]]) -> None

@@ -28,7 +28,7 @@ class CSPresenter:
 
         # SART config
         self._step_count = 18  # type: int
-        self._tutorial_step_count = 9  # type: int
+        self._tutorial_step_count = 18  # type: int
 
         # state holders
         self._current_cs_data = None  # type: Optional[CSData]  # the CSData object for storing reactions during the test and viewing results after the test
@@ -135,6 +135,7 @@ class CSPresenter:
         self._show_result()
 
     def _show_result(self):
+        # self._loaded_cs_data[self._csd_index].evaluate_results()  # debug
         self._loaded_cs_data[self._csd_index].print_results()  # debug
         self._cs_view.set_content("results", (self._loaded_cs_data[self._csd_index], self._is_result_halved, self._csd_index + 1, len(self._loaded_cs_data)))
 
@@ -168,27 +169,26 @@ class CSPresenter:
     def _show_number(self):
         self._reset_stopwatch()
         self._cs_view.set_timer(313, self._show_mask)
+        self._cs_view.set_timer(438, self._show_response_cue)
+        self._cs_view.set_timer(501, self._show_after_mask)
+        self._cs_view.set_timer(876, self._show_fixation)
+        self._cs_view.set_timer(1439, self._decide_test_end)
         self._cs_view.set_content("number", self._current_number)
 
     def _show_mask(self):
-        self._cs_view.set_timer(125, self._show_response_cue)
         self._cs_view.set_content("mask")
 
     def _show_response_cue(self):
-        self._cs_view.set_timer(63, self._show_after_mask)
         self._cs_view.set_content("response")
 
     def _show_after_mask(self):
-        self._cs_view.set_timer(375, self._show_fixation)
         self._cs_view.set_content("mask")
 
     def _show_fixation(self):
-        self._cs_view.set_timer(563, self._decide_test_end)
         self._cs_view.set_content("fixation")
 
     # decide whether to continue looping or show result screen
     def _decide_test_end(self):
-        # todo if action was not taken in this step, also write it down into data
         self._current_step += 1
         if self._is_tutorial and self._current_step == self._tutorial_step_count:
             self._show_tutorial_results()
@@ -207,9 +207,11 @@ class CSPresenter:
         self._current_cs_data.save_reaction(self._current_step, action_time)
         # debug
         if self._current_number == 3:
-            print("[app] WRONG after", action_time, "s")
+            # print("[app] WRONG after", action_time, "s")
+            pass
         else:
-            print("[app] CORRECT after", action_time, "s")
+            # print("[app] CORRECT after", action_time, "s")
+            pass
 
     # --- OUTRO ---
     def _show_outro(self):
@@ -235,13 +237,12 @@ class CSPresenter:
         self._is_result_halved = not self._is_result_halved
         self._cs_view.set_content("results", (self._current_cs_data, self._is_result_halved, None, None))
 
-
     # || Helper functions ||
 
     # start the stopwatch
     def _reset_stopwatch(self):
         # type: (CSPresenter) -> None
-        self._stopwatch_start_time = time.clock()  # in python 3, the preffered call would be time.perf_counter()
+        self._stopwatch_start_time = time.clock()  # in python 3, the preffered call would be time.perf_counter(), clock() should be better than time() on Win
 
     # stop stopwatch stopwatch and get time
     def _get_stopwatch_time(self):

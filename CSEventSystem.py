@@ -80,12 +80,12 @@ class CSEventSystem:
             print("[trigger] WARN Event '" + event_name + "' triggered without listeners")
         # one-time callbacks
         elif event_name in self._onetime_callbacks:  # onetime callbacks take priority over normal ones
-            print("[trigger] Event '" + event_name + "' triggered one-time")
+            # print("[trigger] Event '" + event_name + "' triggered one-time")
             to_call = self._onetime_callbacks.pop(event_name)  # remove the callback from the list
             to_call(*args, **kwargs)  # call the registered function
         # normal callbacks
         else:
-            print("[trigger] Event '" + event_name + "' triggered")
+            # print("[trigger] Event '" + event_name + "' triggered")
             self._callbacks[event_name](*args, **kwargs)  # call the registered function
 
 

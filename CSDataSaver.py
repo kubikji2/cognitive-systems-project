@@ -34,7 +34,7 @@ class CSDataSaver:
         self._file.write(string + CSData_END_LINE)
     
     def _construct_filename(self):
-        return "Results/" + self._cs_data.get_name() + "-" + str(self._cs_data._timestamp).replace(" ", "-").replace(":", "-").split(".")[0] + CSData_FILE_SUFFIX
+        return "Results/" + self._cs_data.name + "-" + str(self._cs_data.timestamp).replace(" ", "-").replace(":", "-").split(".")[0] + CSData_FILE_SUFFIX
 
     def save_data(self):
         print("[CSDATA] saving started")
@@ -42,19 +42,19 @@ class CSDataSaver:
             self._file = f
 
             # HEADER
-            self._add_comment("Data file of " + self._cs_data._name + " created at " + str(self._cs_data._timestamp))
+            self._add_comment("Data file of " + self._cs_data.name + " created at " + str(self._cs_data.timestamp))
 
             # Name
             self._add_comment("Subject name: ")
-            self._add_string(self._cs_data._name)
+            self._add_string(self._cs_data.name)
             
             # Time stampt
             self._add_comment("Start time: ")
-            self._add_string(str(self._cs_data._timestamp))
+            self._add_string(str(self._cs_data.timestamp))
 
             # Step counts
             self._add_comment("Step counts:")
-            self._save_array(self._cs_data._step_count)
+            self._save_array(self._cs_data.step_count)
 
             # Seconds
             self._add_comment("Seconds: ")
@@ -62,37 +62,46 @@ class CSDataSaver:
 
             # Additional data
             self._add_comment("ms")
-            self._save_array_of_arrays(self._cs_data._ms)
+            self._save_array_of_arrays(self._cs_data.ms)
 
             self._add_comment("ms striped")
-            self._save_array_of_arrays(self._cs_data._ms_stripped)
+            self._save_array_of_arrays(self._cs_data.ms_stripped)
 
             self._add_comment("step nums striped")
-            self._save_array_of_arrays(self._cs_data._step_nums_stripped)
+            self._save_array_of_arrays(self._cs_data.step_nums_stripped)
 
             self._add_comment("ms interpolated")
-            self._save_array_of_arrays(self._cs_data._ms_interpolated)
+            self._save_array_of_arrays(self._cs_data.ms_interpolated)
 
             self._add_comment("mean by digit")
-            self._save_array_of_arrays(self._cs_data._mean_by_digit)
+            self._save_array_of_arrays(self._cs_data.mean_by_digit)
+
+            self._add_comment("fft")
+            self._save_array_of_arrays(self._cs_data.fft)
+
+            self._add_comment("fft frequencies")
+            self._save_array_of_arrays(self._cs_data.fft_freq)
+
+            self._add_comment("aus")
+            self._save_array(self._cs_data.aus)
 
             self._add_comment("mean")
-            self._save_array(self._cs_data._mean)
+            self._save_array(self._cs_data.mean)
 
             self._add_comment("standard deviation")
-            self._save_array(self._cs_data._std_dev)
+            self._save_array(self._cs_data.std_dev)
 
             self._add_comment("regression line")
-            self._save_array(self._cs_data._regression_line)
+            self._save_array(self._cs_data.regression_line)
 
             self._add_comment("comission error")
-            self._save_array(self._cs_data._comission_errors)
+            self._save_array(self._cs_data.comission_errors)
 
             self._add_comment("omission error")
-            self._save_array(self._cs_data._omission_errors)
+            self._save_array(self._cs_data.omission_errors)
 
             self._add_comment("random errors")
-            self._save_array(self._cs_data._random_errors)
+            self._save_array(self._cs_data.other_errors)
 
     def _load_int_array(self, string):
         items = string.split(CSData_SEPARATOR)
@@ -136,25 +145,29 @@ class CSDataSaver:
                     data_lines.append(line)
             
             # reading name
-            self._cs_data._name = data_lines[0].replace(CSData_END_LINE, "")
+            self._cs_data.name = data_lines[0].replace(CSData_END_LINE, "")
             # reading timestamp
             # conversion based on: https://stackabuse.com/converting-strings-to-datetime-in-python/
-            self._cs_data._timestamp = datetime.datetime.strptime(data_lines[1].replace(CSData_END_LINE, ""), '%Y-%m-%d %H:%M:%S.%f')
+            self._cs_data.timestamp = datetime.datetime.strptime(data_lines[1].replace(CSData_END_LINE, ""), '%Y-%m-%d %H:%M:%S.%f')
             # reading step count
-            self._cs_data._step_count = self._load_int_array(data_lines[2])
+            self._cs_data.step_count = self._load_int_array(data_lines[2])
             # reading seconds
             self._cs_data._seconds = self._load_float_array(data_lines[3])
+            self._cs_data._multiple_press_errors = [0, 0, 0]  # todo temporary solution since its not being saved
 
-            self._cs_data._ms = self._load_array_of_array(data_lines[4:7])
-            self._cs_data._ms_stripped = self._load_array_of_array(data_lines[7:10])
-            self._cs_data._step_nums_stripped = self._load_array_of_array(data_lines[10:13])
-            self._cs_data._ms_interpolated = self._load_array_of_array(data_lines[13:16])
-            self._cs_data._mean_by_digit = self._load_array_of_array(data_lines[16:19])
+            self._cs_data.ms = self._load_array_of_array(data_lines[4:7])
+            self._cs_data.ms_stripped = self._load_array_of_array(data_lines[7:10])
+            self._cs_data.step_nums_stripped = self._load_array_of_array(data_lines[10:13])
+            self._cs_data.ms_interpolated = self._load_array_of_array(data_lines[13:16])
+            self._cs_data.mean_by_digit = self._load_array_of_array(data_lines[16:19])
+            self._cs_data.fft = self._load_array_of_array(data_lines[19:22])
+            self._cs_data.fft_freq = self._load_array_of_array(data_lines[22:25])
 
             # statistics
-            self._cs_data._mean = self._load_float_array(data_lines[19])
-            self._cs_data._std_dev = self._load_float_array(data_lines[20])
-            self._cs_data._regression_line = self._load_float_array(data_lines[21])
-            self._cs_data._comission_errors = self._load_float_array(data_lines[22])
-            self._cs_data._omission_errors = self._load_float_array(data_lines[23])
-            self._cs_data._random_errors = self._load_float_array(data_lines[24])
+            self._cs_data.aus = self._load_float_array(data_lines[25])
+            self._cs_data.mean = self._load_float_array(data_lines[26])
+            self._cs_data.std_dev = self._load_float_array(data_lines[27])
+            self._cs_data.regression_line = self._load_float_array(data_lines[28])
+            self._cs_data.comission_errors = self._load_int_array(data_lines[29])
+            self._cs_data.omission_errors = self._load_int_array(data_lines[30])
+            self._cs_data.other_errors = self._load_int_array(data_lines[31])

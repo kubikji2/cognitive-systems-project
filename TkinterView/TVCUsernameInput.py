@@ -16,7 +16,7 @@ class TVCUsernameInput(TkinterViewContent):
         lbl_header = Tk.Label(parent, text="Please type your name or nickname", font=("Arial", 24))
         self._ent_username = Tk.Entry(parent, width=30, justify='center', font=("Arial", 16, 'bold'), relief=Tk.FLAT)
         self._ent_username.focus()
-        lbl_controls = Tk.Label(parent, text="Press Enter or space to confirm", font=("Arial", 16))
+        lbl_controls = Tk.Label(parent, text="Press Enter to confirm", font=("Arial", 16))
         lbl_controls2 = Tk.Label(parent, text="Press Esc to go back")
 
         # Place widgets

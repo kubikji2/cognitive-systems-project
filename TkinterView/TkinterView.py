@@ -80,7 +80,7 @@ class TkinterView(CSView):
     def _set_window(self):
         # init root window
         self._window = Tk.Tk()  # window reference should only be GET from other classes, never SET!
-        self._window.geometry("1000x600")
+        self._window.geometry("1280x720")
         # self.window.eval('tk::PlaceWindow . center')  # place the windowed version to center of screen
         # self.window.attributes('-fullscreen', True)
         self._window.title("SART test")
@@ -152,12 +152,13 @@ class TkinterView(CSView):
     # additional info:
     # https://stackoverflow.com/questions/15781802/python-tkinter-clearing-a-frame
     def clear_content(self):
-        # destroy all widgets from frame
-        for widget in self._frame.winfo_children():
-            widget.destroy()
-        # tclear frame and frame will be empty
+        tmp = self._frame.winfo_children()  # get all children widgets
+        # remove all widgets from the frame
         self._frame.pack_forget()
         self._frame.grid_forget()
+        # destroy all widgets from the frame (it takes some time, so its here)
+        for widget in tmp:
+            widget.destroy()
         self._content = None
 
     def read_input(self):
