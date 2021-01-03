@@ -13,11 +13,11 @@ matplotlib.use("TkAgg")  # setting matplotlib to use the 'Tkinter Anti-grain ren
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import matplotlib.pyplot as plt  # diference of pyplot and figure here: https://stackoverflow.com/questions/5450207/whats-the-difference-between-matplotlib-pyplot-and-matplotlib-figure
 
-RT_TIME_MAX = 800  # STEP_TIME
+RT_TIME_MAX = 1000  # STEP_TIME
 RT_TIME_MIN = 200  # TOO_EARLY_TIME + 100
-DGM_TIME_MAX = 600
+DGM_TIME_MAX = 800
 DGM_TIME_MIN = 300
-FFT_TIME_MAX = 80
+FFT_TIME_MAX = 60
 FREQ_MAX = 0.35
 PSP_FREQ = 0.0772  # principle SART peak frequency (once per whole 1-9 cycle)
 
@@ -110,7 +110,7 @@ class TVCResults(TkinterViewContent):
             plt.style.use('dark_background')
 
             # response time graph
-            fig_rt = plt.Figure(figsize=(7.52, 2.2), dpi=100, tight_layout=True)  # create a canvas to draw
+            fig_rt = plt.Figure(figsize=(7.52, 3), dpi=100, tight_layout=True)  # create a canvas to draw
             axes_rt = fig_rt.add_subplot(1, 1, 1)  # create an axes object add_subplot(nrows, ncols, index, **kwargs)
             axes_rt.set_title('Response times')
             axes_rt.set_ylim(RT_TIME_MIN, RT_TIME_MAX)
@@ -123,10 +123,10 @@ class TVCResults(TkinterViewContent):
             axes_rt.xaxis.set_minor_locator(MultipleLocator(9))
             axes_rt.grid(which="minor", color='gray', linestyle='--', linewidth=0.5)
             axes_rt.grid(which="major", color='gray', linestyle='--', linewidth=0.5)
-            x_rt = self._cs_data.step_nums_stripped[WHOLE]
-            y_rt = self._cs_data.ms_stripped[WHOLE]
+            x_rt = np.arange(0, self._cs_data.step_count[WHOLE])
+            y_rt = self._cs_data.ms[WHOLE]
             axes_rt.bar(x_rt, y_rt, color='C0', label='RT', align='edge', width=1.0)
-            x_rt_line = np.array([0, self._cs_data.step_nums_stripped[WHOLE][-1]])
+            x_rt_line = np.array([0, self._cs_data.step_count[WHOLE] - 1])
             y_rt_line = np.array(2 * [self._cs_data.regression_line[0]]) + x_rt_line * np.array(2 * [self._cs_data.regression_line[1]])  # once * for more elements, once * for vector multiplication ^^
             axes_rt.plot(x_rt_line, y_rt_line, color='C1', label="slope")
             axes_rt.legend()

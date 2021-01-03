@@ -19,6 +19,8 @@ from TVCInstructions import TVCInstructions
 from TVCTutorialResults import TVCTutorialResults
 from TVCUsernameInput import TVCUsernameInput
 
+# Tkinter tutorial https://realpython.com/python-gui-tkinter/#controlling-layout-with-geometry-managers
+
 """
 TkinterView (implementing CSView) is a class providing methods for viewing content to the user and getting input. 
 It is implemented using Tkinter library, creating and maintaining a window on desktop.

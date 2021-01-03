@@ -29,7 +29,7 @@ You will be presented with digits 1 to 9. The digits will appear in sequential o
 
 For example, if you have chosen Enter and see the digit '1', press Enter. If you see the digit '3', DO NOT press anything.
 
-To be more specific, each digit will be followed by a circle with a cross. The cross will then blink bold, which indicates when you should respond to the digit you just saw. You should NOT respond before the cricle appears - try to respond exactly on the indication, not sooner, nor later. Lastly, there will be a simple cross without circle marking preparation time for next digit.
+To be more specific, each digit will be followed by a circle with a cross. The cross will then blink bold, which indicates when you should respond to the digit you just saw. You should not respond before the cricle appears - try to respond exactly on the indication, not sooner, nor later. Lastly, there will be a simple cross without circle marking preparation time for next digit.
         """)
         lbl_controls1 = Tk.Label(parent, font=("Arial", 16), text="Press Enter or Space to start a training block")
         lbl_controls2 = Tk.Label(parent, text="Press R to skip training")
