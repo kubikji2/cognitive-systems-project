@@ -20,6 +20,8 @@ DGM_TIME_MIN = 300
 FFT_TIME_MAX = 60
 FREQ_MAX = 0.35
 PSP_FREQ = 0.0772  # principle SART peak frequency (once per whole 1-9 cycle)
+RESPONSE_CUE_START = 438
+RESPONSE_CUE_END = 501
 
 """
 Screen showing the results to the user. |WARNING| Please do not judge this class, could be done better in a million ways :D 
@@ -123,14 +125,14 @@ class TVCResults(TkinterViewContent):
             axes_rt.xaxis.set_minor_locator(MultipleLocator(9))
             axes_rt.grid(which="minor", color='gray', linestyle='--', linewidth=0.5)
             axes_rt.grid(which="major", color='gray', linestyle='--', linewidth=0.5)
+            axes_rt.axhspan(RESPONSE_CUE_START, RESPONSE_CUE_END, facecolor='white', alpha=0.4, label="response cue")
             x_rt = np.arange(0, self._cs_data.step_count[WHOLE])
             y_rt = self._cs_data.ms[WHOLE]
-            axes_rt.bar(x_rt, y_rt, color='C0', label='RT', align='edge', width=1.0)
+            axes_rt.bar(x_rt, y_rt, color='C0', label='user time', align='edge', width=1.0)
             x_rt_line = np.array([0, self._cs_data.step_count[WHOLE] - 1])
             y_rt_line = np.array(2 * [self._cs_data.regression_line[0]]) + x_rt_line * np.array(2 * [self._cs_data.regression_line[1]])  # once * for more elements, once * for vector multiplication ^^
             axes_rt.plot(x_rt_line, y_rt_line, color='C1', label="slope")
             axes_rt.legend()
-
 
             # means by digits graph
             fig_dig_means = plt.Figure(figsize=(3.5, 2.2), dpi=100, tight_layout=True)
@@ -154,16 +156,17 @@ class TVCResults(TkinterViewContent):
             fig_fft = plt.Figure(figsize=(4, 2.2), dpi=100, tight_layout=True)
             axes_fft = fig_fft.add_subplot(1, 1, 1)
             axes_fft.set_title('Variance spectrum')
+            axes_fft.set_xlim(0, FREQ_MAX)
             axes_fft.set_ylim(0, FFT_TIME_MAX)
             axes_fft.set_xlabel("Frequency (Hz)")
             axes_fft.set_ylabel("Amplitude (ms)")
             axes_fft.set_xticks(np.arange(0, FREQ_MAX + 0.05, 0.05))
             axes_fft.minorticks_on()
             axes_fft.grid(color='gray', linestyle='--', linewidth=0.5)
-            axes_fft.axvline(PSP_FREQ, color='rosybrown', linestyle='--', linewidth=0.5)
             x_fft = self._cs_data.fft_freq[WHOLE]
             y_fft = self._cs_data.fft[WHOLE]
-            axes_fft.plot(x_fft, y_fft, color="C3", label="scaled amplitude")
+            axes_fft.plot(x_fft, y_fft, color="C3", label="amplitude")
+            axes_fft.axvline(PSP_FREQ, color='rosybrown', linestyle='--', linewidth=0.5, label="sequence freq.")
             axes_fft.legend()
             # signal = self._cs_data.ms_interpolated[WHOLE]
             # axes_fft.psd(signal, Fs=1.0/1.439)
@@ -336,10 +339,10 @@ class TVCResults(TkinterViewContent):
             axes_fft_1.set_xticks(np.arange(0, FREQ_MAX + 0.05, 0.05))
             axes_fft_1.minorticks_on()
             axes_fft_1.grid(color='gray', linestyle='--', linewidth=0.5)
-            axes_fft_1.axvline(PSP_FREQ, color='rosybrown', linestyle='--', linewidth=0.5)
             x_fft_1 = self._cs_data.fft_freq[FIRST]
             y_fft_1 = self._cs_data.fft[FIRST]
-            axes_fft_1.plot(x_fft_1, y_fft_1, color="C3", label="scaled amplitude")
+            axes_fft_1.plot(x_fft_1, y_fft_1, color="C3", label="amplitude")
+            axes_fft_1.axvline(PSP_FREQ, color='rosybrown', linestyle='--', linewidth=0.5, label="sequence freq.")
             axes_fft_1.legend()
             
             # 2nd fft graph
@@ -352,10 +355,10 @@ class TVCResults(TkinterViewContent):
             axes_fft_2.set_xticks(np.arange(0, FREQ_MAX + 0.05, 0.05))
             axes_fft_2.minorticks_on()
             axes_fft_2.grid(color='gray', linestyle='--', linewidth=0.5)
-            axes_fft_2.axvline(PSP_FREQ, color='rosybrown', linestyle='--', linewidth=0.5)
             x_fft_2 = self._cs_data.fft_freq[SECOND]
             y_fft_2 = self._cs_data.fft[SECOND]
-            axes_fft_2.plot(x_fft_2, y_fft_2, color="C3", label="scaled amplitude")
+            axes_fft_2.plot(x_fft_2, y_fft_2, color="C3", label="amplitude")
+            axes_fft_2.axvline(PSP_FREQ, color='rosybrown', linestyle='--', linewidth=0.5, label="sequence freq.")
             axes_fft_2.legend()
 
 

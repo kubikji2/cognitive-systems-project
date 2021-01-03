@@ -124,13 +124,18 @@ class CSPresenter:
             self._cs_view.set_content("results", (None, None, None, None))
         else:
             self._csd_index = 0
-            self._current_cs_data = self._loaded_cs_data[self._csd_index]
+            # self._current_cs_data = self._loaded_cs_data[self._csd_index]
             self._is_result_halved = False
             self._cs_event_system.add_onetime_callback("back", self._show_intro)
             self._cs_event_system.add_callback("action", self._switch_halved)
+            # self._cs_event_system.add_callback("action_alt", self._debug_eval_and_show)
             self._cs_event_system.add_callback("left", self._previous_result)
             self._cs_event_system.add_callback("right", self._next_result)
             self._show_result()
+
+    # def _debug_eval_and_show(self):
+    #     self._loaded_cs_data[self._csd_index].evaluate_results()
+    #     self._show_result()
 
     def _switch_halved(self):
         self._is_result_halved = not self._is_result_halved
