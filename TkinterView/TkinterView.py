@@ -78,6 +78,9 @@ class TkinterView(CSView):
         # self.window.attributes('-fullscreen', True)
         self._window.title("SART test")
         self._window.tk_setPalette(background="black", foreground="white")
+        # seting default font
+        #default_font = tkFont.nametofont("TkDefaultFont")
+        #default_font.configure(family="Arial", size=10)
 
     # prepare frame 
     def _set_frame(self):
@@ -101,7 +104,7 @@ class TkinterView(CSView):
 
     # a function to be called by Tkinter when specified keys are pressed
     def _key_callback(self, keyboard_event):
-        print("[CSTkinterView] key " + keyboard_event.keysym + "")
+        #print("[CSTkinterView] key " + keyboard_event.keysym + "")
         # trigger special any key event
         self.cs_event_system.trigger("any")
         # check whether there are any other bindings
