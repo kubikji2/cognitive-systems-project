@@ -129,4 +129,4 @@ dmypy.json
 .pyre/
 
 # Custom stuff (saved datas)
-*.csd
+#*.csd
