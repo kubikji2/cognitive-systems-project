@@ -41,6 +41,7 @@ class TkinterView(CSView):
         self._time_multiplier = 1
 
         # set up keyboard input
+        self._key_fids = []
         self._key_event_map = {}
         self._key_event_map["<Return>"] = "action"
         self._key_event_map["<space>"] = "action"
@@ -51,17 +52,6 @@ class TkinterView(CSView):
         self._key_event_map["<Right>"] = "right"
         self._key_event_map["<Key>"] = "any"  # special event, happening on any key press
         self._key_event_map["f"] = "fullscreen"  # Tkinter view internal event (not controlled by presenter)
-
-        self._keycode_key_map = {}
-        self._keycode_key_map[13] = "<Return>"
-        self._keycode_key_map[32] = "<space>"
-        self._keycode_key_map[27] = "<Escape>"
-        # self._char_key_map[8] = "<BackSpace>"
-        self._keycode_key_map[37] = "<Left>"
-        self._keycode_key_map[39] = "<Right>"
-        self._keycode_key_map[82] = "r"
-        self._keycode_key_map[70] = "f"
-        self._key_fids = []
         self._bind_keyboard_input()
 
         # view content cache -> faster changes in view (specifically because of image loading)
@@ -111,21 +101,26 @@ class TkinterView(CSView):
 
     # a function to be called by Tkinter when specified keys are pressed
     def _key_callback(self, keyboard_event):
+        print("[CSTkinterView] key " + keyboard_event.keysym + "")
         # trigger special any key event
         self.cs_event_system.trigger("any")
         # check whether there are any other bindings
-        if keyboard_event.keycode not in self._keycode_key_map:
-            # print("[CSTkinterView] key " + repr(keyboard_event.keycode) + " not mapped")
-            return
-        key = self._keycode_key_map[keyboard_event.keycode]
-        event = self._key_event_map[key]
-        # print("key: " + repr(key))
-        if event == "fullscreen":
-            self._toggle_fullscreen()
+        if keyboard_event.keysym in self._key_event_map:
+            event = self._key_event_map[keyboard_event.keysym]
+            if event == "fullscreen":
+                self._toggle_fullscreen()
+            else:
+                self.cs_event_system.trigger(event)
+        elif '<' + keyboard_event.keysym + '>' in self._key_event_map:
+            event = self._key_event_map['<' + keyboard_event.keysym + '>']
+            if event == "fullscreen":
+                self._toggle_fullscreen()
+            else:
+                self.cs_event_system.trigger(event)
         else:
-            self.cs_event_system.trigger(event)
+            print("[CSTkinterView] not mapped")
 
-    # Tkinter view specific command to go fullscreen
+            # Tkinter view specific command to go fullscreen
     def _toggle_fullscreen(self):
         self._window.attributes("-fullscreen", not self._window.attributes("-fullscreen"))
 

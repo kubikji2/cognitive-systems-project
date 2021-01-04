@@ -155,7 +155,7 @@ class CSPresenter:
 
     def _show_result(self):
         # self._loaded_cs_data[self._csd_index].evaluate_results()  # debug
-        self._loaded_cs_data[self._csd_index].print_results()  # debug
+        # self._loaded_cs_data[self._csd_index].print_results()  # debug
         # self._loaded_cs_data[self._csd_index].save_to_file()  # debug
         self._cs_view.set_content("results", (self._loaded_cs_data[self._csd_index], self._is_result_halved, self._csd_index + 1, len(self._loaded_cs_data)))
 
