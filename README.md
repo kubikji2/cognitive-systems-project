@@ -7,8 +7,8 @@ _The easy way:_
 
 1. Install anaconda or miniconda (smaller)
 2. Open terminal in the project's directory and run ``conda env create -f sart.yml`` to create new conda environment called _sart_.
-3. Activate newly created environment by: ``conda activate sart``.
-4. Run the project using: ``python ./main.py``.
+3. Activate the environment by: ``conda activate sart``.
+4. Run the project by: ``python ./main.py``.
 5. To remove the environment from your system run: ``conda env remove -n sart -y``
   
 _The manual way:_  
