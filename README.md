@@ -14,7 +14,7 @@ _The easy way:_
   
 _The manual way:_  
   
-Install  
+Install:  
 &nbsp;&nbsp;Python 2.7 (yes... the old one, we had a reason)  
 And these libs:  
 &nbsp;&nbsp;Tkinter  
