@@ -121,13 +121,13 @@ class CSData:
     def print_results(self):
         print("Reaction times:")
         print(self.ms[WHOLE])
-        print(self.ms[FIRST]),
-        print(self.ms[SECOND])
+        # print(self.ms[FIRST]),
+        # print(self.ms[SECOND])
         print()
         print("Interpolated times:")
         print(self.ms_interpolated[WHOLE])
-        print(self.ms_interpolated[FIRST]),
-        print(self.ms_interpolated[SECOND])
+        # print(self.ms_interpolated[FIRST]),
+        # print(self.ms_interpolated[SECOND])
         print()
         print("Step counts:", self.step_count[WHOLE], self.step_count[FIRST], self.step_count[SECOND])
         print("Comission errors:", self.comission_errors[WHOLE], self.comission_errors[FIRST], self.comission_errors[SECOND])
@@ -136,8 +136,8 @@ class CSData:
         print()
         print("Stripped times:")
         print(zip(self.step_nums_stripped[WHOLE], self.ms_stripped[WHOLE]))
-        print(zip(self.step_nums_stripped[FIRST], self.ms_stripped[FIRST])),
-        print(zip(self.step_nums_stripped[FIRST], self.ms_stripped[SECOND]))
+        # print(zip(self.step_nums_stripped[FIRST], self.ms_stripped[FIRST])),
+        # print(zip(self.step_nums_stripped[FIRST], self.ms_stripped[SECOND]))
         print()
         print("Means by digits: ")
         print(zip(DIGITS_EXCEPT_3, self.mean_by_digit[WHOLE]))
