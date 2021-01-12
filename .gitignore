@@ -130,3 +130,4 @@ dmypy.json
 
 # Custom stuff (saved datas)
 #*.csd
+/Results/mira-2021-01-02-19-04-49.csd

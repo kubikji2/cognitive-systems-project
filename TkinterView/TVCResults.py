@@ -15,8 +15,8 @@ import matplotlib.pyplot as plt  # diference of pyplot and figure here: https://
 
 RT_TIME_MAX = 1000  # STEP_TIME
 RT_TIME_MIN = 200  # TOO_EARLY_TIME + 100
-DGM_TIME_MAX = 800
-DGM_TIME_MIN = 300
+DGM_TIME_MAX = RT_TIME_MAX
+DGM_TIME_MIN = RT_TIME_MIN
 FFT_TIME_MAX = 60
 FREQ_MAX = 0.35
 PSP_FREQ = 0.0772  # principle SART peak frequency (once per whole 1-9 cycle)
