@@ -13,6 +13,7 @@ _The easy way:_
 - To later remove the environment from your system run: ``conda env remove -n sart -y``
   
 _The manual way:_  
+  
 &nbsp;&nbsp;Python 2.7 (yes... the old one, we had a reason)  
 &nbsp;&nbsp;Tkinter  
 &nbsp;&nbsp;pillow  
