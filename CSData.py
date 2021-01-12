@@ -358,7 +358,7 @@ class CSData:
                 self.fft_freq[part][-1] *= -1.0  # convert the last negative freq to positive (its the nyquist / hlaf the sampling freq)
             self.aus[part] = sum(self.fft[part]) / n_samples  # its my own AUS - sum ~ integral, and since amp_scaled are normalized, then only thing remaining after sum is divide once more by n_samples, and this should be a normalized value across varying n_samples
 
-            debug = True
+            debug = False
             if debug:
                 np.set_printoptions(precision=3, suppress=True, linewidth=np.inf)
                 print("mean: {}".format(np.mean(self.ms_interpolated[part])))

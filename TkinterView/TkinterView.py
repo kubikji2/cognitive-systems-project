@@ -121,9 +121,10 @@ class TkinterView(CSView):
             else:
                 self.cs_event_system.trigger(event)
         else:
-            print("[CSTkinterView] not mapped")
+            # print("[CSTkinterView] not mapped")
+            pass
 
-            # Tkinter view specific command to go fullscreen
+    # Tkinter view specific command to go fullscreen
     def _toggle_fullscreen(self):
         self._window.attributes("-fullscreen", not self._window.attributes("-fullscreen"))
 
