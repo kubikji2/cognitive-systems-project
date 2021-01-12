@@ -5,11 +5,11 @@ Semestral project for Cognitive Systems course. Implemention of a cognitive test
 ## How to run this project
 _The easy way:_  
 
-0. Install anaconda or miniconda (smaller)
-1. Run ``conda env create -f sart.yml`` to create new conda environment called _sart_.
-2. Activate newly created environment by: ``conda activate sart``.
-3. To run the project, run main.py in python: ``python ./main.py``.
-4. To remove the environment from your system run: ``conda env remove -n sart -y``
+1. Install anaconda or miniconda (smaller)
+2. Run ``conda env create -f sart.yml`` to create new conda environment called _sart_.
+3. Activate newly created environment by: ``conda activate sart``.
+4. To run the project, run main.py in python: ``python ./main.py``.
+5. To remove the environment from your system run: ``conda env remove -n sart -y``
   
 _The manual way:_  
 Python 2.7 (yes... the old one, we had a reason)  
