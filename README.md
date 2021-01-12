@@ -8,4 +8,4 @@ Semestral project for Cognitive Systems course. Implemention of a cognitive test
 1. Running ``conda env create -f sart.yml`` creates new conda environment called _sart_.
 2. Activate newly created environment by: ``conda activate sart``.
 3. To run project, run main.py in python: ``python ./main.py``.
-4. To remove the environment from your system run: ``conda env remove -n sart --all -y``
+4. To remove the environment from your system run: ``conda env remove -n sart -y``
